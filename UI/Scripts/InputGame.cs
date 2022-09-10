@@ -1,3 +1,4 @@
+using System.Security;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,7 +9,7 @@ public class InputGame : MonoBehaviour, IPointerDownHandler,IPointerUpHandler
 {
   public Vector2 TouchRunPosition;
   public float dash_sensitivity;
-  public FixedButton SitButton; //右画面JoyStick
+  //public FixedButton SitButton; //右画面JoyStick
   [HideInInspector]
   public Vector2 Direction;
   [HideInInspector]
@@ -48,7 +49,7 @@ public class InputGame : MonoBehaviour, IPointerDownHandler,IPointerUpHandler
         touch = Input.touches[PointerId].position;
         handle.transform.position = touch;
         Vector2 Direction_tmp = (touch - TouchRunPosition).normalized;
-        if (SitButton.Pressed){
+        if (player.isSitting){
           Direction = Direction_tmp;
         }
         else{

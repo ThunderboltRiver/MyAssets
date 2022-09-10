@@ -53,13 +53,11 @@ public class EnemyAI : MonoBehaviour
         //Vector3 randomPos = new Vector3(0, 0, 0);
         Vector3 randomPos = new Vector3(Random.Range( - wanderRange, wanderRange), 0, Random.Range( - wanderRange, wanderRange));
         //SamplePositionは設定した場所から5の範囲で最も近い距離のBakeされた場所を探す。
-        Debug.Log(randomPos);
         NavMesh.SamplePosition(randomPos, out navMeshHit, 5, 1);
         Vector3 destination = navMeshHit.position;
         if (destination != Vector3.positiveInfinity & destination != Vector3.negativeInfinity){
           transform.LookAt(destination);
           navMeshAgent.destination = destination;
-          Debug.Log("randomPos is" + navMeshAgent.destination);
         }
 
       }

@@ -7,22 +7,25 @@ using System.Collections.Generic;
 public class Player : MonoBehaviour
 {
     //public FixedJoystick MovejoyStick; //左画面JoyStick
-    public InputGame TouchRun;
     //public FixedButton SitButton;
     //public FixedTouchField TouchField;
     public EnemyAI Enemy;
     public float speed;
-    public Take take;
+    // [HideInInspector]
+    // public bool isSelecting;
     [HideInInspector]
-    public bool isSelecting;
+    public GameObject selectingitem;
     [HideInInspector]
-    public GameObject PlayerView;
+    public bool isSitting = false;
+    // [HideInInspector]
+    // public GameObject PlayerView;
+    // [HideInInspector]
+    // public Vector3 PlayerView_origin;
     [HideInInspector]
-    public Vector3 PlayerView_origin;
-    [HideInInspector]
-    public RigidbodyFirstPersonController fps;
     protected AudioSource TraceSound;
     protected AudioSource FootStep;
+    [HideInInspector]
+    public RigidbodyFirstPersonController fps;
     private Rigidbody rb;
     private float runStepLengthen = 0.7f;
     private float stepInterval = 10f;
@@ -30,44 +33,38 @@ public class Player : MonoBehaviour
     private float nextStep;
     private List<string> CollisionObs = new List<string>();
     private Vector3 StepHitPosition;
-    [SerializeField] AudioClip[] clips;
+    private AudioSource[] sounds;
     [SerializeField] bool randomizePitch = true;
     [SerializeField] float pitchRange = 0.1f;
-
-
-    //[SerializeField] AudioClip[] clips;
+    [SerializeField] AudioClip[] clips;
 
 
     void Start()
     {
-        PlayerView = gameObject.transform.Find("MainCamera").gameObject;
-        PlayerView_origin = PlayerView.transform.localPosition;
-        TraceSound = PlayerView.GetComponents<AudioSource>()[0];
-        rb = GetComponent<Rigidbody>();
-        FootStep = GetComponents<AudioSource>()[1];
-        fps = GetComponent<RigidbodyFirstPersonController>(); // これをスタートに
+      // PlayerView = gameObject.transform.Find("MainCamera").gameObject;
+      // PlayerView_origin = PlayerView.transform.localPosition;
+      //TraceSound = PlayerView.GetComponents<AudioSource>()[0];
+      sounds = GetComponents<AudioSource>();
+      FootStep = sounds[1];
+      TraceSound = sounds[2];
+      fps = GetComponent<RigidbodyFirstPersonController>();
+      rb = GetComponent<Rigidbody>();
     }
 
     void Update()
     {
-        //var fps = GetComponent<RigidbodyFirstPersonController>(); // これをスタートに
-        //fps.RunAxis = TouchRun.Direction;
-        //fps.mouseLook.LookAxis = TouchField.TouchDist;
-        ProgressStepCycle(speed);
-        TraceAudioPlay();
-        TraceAudioStop();
-        //transform.position += (isStep && TouchRun.Pressed ? 1f : 0f)*Stepheight*Vector3.up;
-
-
+      ProgressStepCycle(speed);
+      TraceAudioPlay();
+      TraceAudioStop();
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        string ObjectName = collision.gameObject.name;
-        CollisionObs.Add(ObjectName);
-        if(ObjectName == "enemy"){
-            SceneManager.LoadScene("GameOver");
-          }
+      if(collision.gameObject.CompareTag("Enemy")){
+        SceneManager.LoadScene("GameOver");
+      }
+      string ObjectName = collision.gameObject.name;
+      CollisionObs.Add(ObjectName);
     }
 
     void OnCollisionExit(Collision collision)
@@ -75,30 +72,12 @@ public class Player : MonoBehaviour
       string ObjectName = collision.gameObject.name;
       CollisionObs.Remove(ObjectName);
     }
-    //public void Sitting(){
-      //if (SitButton.Pressed){
-        //PlayerView.transform.localPosition = Vector3.zero;
-        //Debug.Log("PlayerView:" + PlayerView.transform.localPosition);
-      //}
-      //else{
-        //Debug.Log("Sitting else");
-        //PlayerView.transform.localPosition = PlayerView_origin;
-      //}
-    //}
 
     public void TraceAudioPlay(){
-      if (!TraceSound.isPlaying){
-        if(Enemy && Enemy.traceMode){
-          TraceSound.Play();
-        }
-      }
+      if(!TraceSound.isPlaying && Enemy.traceMode) TraceSound.Play();
     }
     public void TraceAudioStop(){
-      if (TraceSound.isPlaying){
-        if(!Enemy.traceMode){
-          TraceSound.Stop();
-        }
-      }
+      if (TraceSound.isPlaying && !Enemy.traceMode) TraceSound.Stop();
     }
     void PlayStepSound()
     {
@@ -138,23 +117,23 @@ public class Player : MonoBehaviour
     public void OnTriggerEnter(Collider other){
       switch(other.tag){
         case "Item":
-          isSelecting = true;
-          take.item = other.gameObject;
+          selectingitem = other.gameObject;
           break;
       }
 
     }
 
     public void OnTriggerExit(Collider other){
-      isSelecting = false;
-
+      if (other.CompareTag("Item")){
+        selectingitem = null;
+      }
     }
 
-    public bool RayCastfromCenter(string ObjectName){
-      Vector2 center = new Vector2 (Screen.width/2, Screen.height/2);
-      Ray ray = Camera.main.ScreenPointToRay(center);
-      RaycastHit hit;
-      return Physics.Raycast(ray, out hit) && hit.collider.gameObject.name == ObjectName;
+    // public bool RayCastfromCenter(string ObjectName){
+    //   Vector2 center = new Vector2 (Screen.width/2, Screen.height/2);
+    //   Ray ray = Camera.main.ScreenPointToRay(center);
+    //   RaycastHit hit;
+    //   return Physics.Raycast(ray, out hit) && hit.collider.gameObject.name == ObjectName;
 
-    }
+    // }
 }
