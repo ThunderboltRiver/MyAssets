@@ -15,29 +15,34 @@ public class Drop : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
     private TextMeshProUGUI text;
     void Start()
     {
-      text = gameObject.GetComponent<TextMeshProUGUI>();
-      text.enabled = false;
+        text = gameObject.GetComponent<TextMeshProUGUI>();
+        text.enabled = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-      if (IW.isContaining && !act){
-        act = true;
-        text.enabled = act;
-      }else if(!IW.isContaining){
-        act = false;
-        text.enabled = act;
-      }
+        if (IW.isContaining && !act)
+        {
+            act = true;
+            text.enabled = act;
+        }
+        else if (!IW.isContaining)
+        {
+            act = false;
+            text.enabled = act;
+        }
 
     }
-    public void OnPointerDown(PointerEventData eventData){
-      //act = false;
-      //text.enabled = act;
-      Pressed = true;
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        //act = false;
+        //text.enabled = act;
+        Pressed = true;
     }
-    public void OnPointerUp(PointerEventData eventData){
-      Pressed = false;
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        Pressed = false;
     }
 
 

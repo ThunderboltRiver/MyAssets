@@ -41,51 +41,57 @@ public class Player : MonoBehaviour
 
     void Start()
     {
-      // PlayerView = gameObject.transform.Find("MainCamera").gameObject;
-      // PlayerView_origin = PlayerView.transform.localPosition;
-      //TraceSound = PlayerView.GetComponents<AudioSource>()[0];
-      sounds = GetComponents<AudioSource>();
-      FootStep = sounds[1];
-      TraceSound = sounds[2];
-      fps = GetComponent<RigidbodyFirstPersonController>();
-      rb = GetComponent<Rigidbody>();
+        // PlayerView = gameObject.transform.Find("MainCamera").gameObject;
+        // PlayerView_origin = PlayerView.transform.localPosition;
+        //TraceSound = PlayerView.GetComponents<AudioSource>()[0];
+        sounds = GetComponents<AudioSource>();
+        FootStep = sounds[1];
+        TraceSound = sounds[2];
+        fps = GetComponent<RigidbodyFirstPersonController>();
+        rb = GetComponent<Rigidbody>();
     }
 
     void Update()
     {
-      ProgressStepCycle(speed);
-      TraceAudioPlay();
-      TraceAudioStop();
+        ProgressStepCycle(speed);
+        TraceAudioPlay();
+        TraceAudioStop();
     }
 
     void OnCollisionEnter(Collision collision)
     {
-      if(collision.gameObject.CompareTag("Enemy")){
-        SceneManager.LoadScene("GameOver");
-      }
-      string ObjectName = collision.gameObject.name;
-      CollisionObs.Add(ObjectName);
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            SceneManager.LoadScene("GameOver");
+            return;
+        }
+        string ObjectName = collision.gameObject.name;
+        CollisionObs.Add(ObjectName);
     }
 
     void OnCollisionExit(Collision collision)
     {
-      string ObjectName = collision.gameObject.name;
-      CollisionObs.Remove(ObjectName);
+        string ObjectName = collision.gameObject.name;
+        CollisionObs.Remove(ObjectName);
     }
 
-    public void TraceAudioPlay(){
-      if(!TraceSound.isPlaying && Enemy.traceMode) TraceSound.Play();
+    public void TraceAudioPlay()
+    {
+        if (!TraceSound.isPlaying && Enemy.traceMode) TraceSound.Play();
     }
-    public void TraceAudioStop(){
-      if (TraceSound.isPlaying && !Enemy.traceMode) TraceSound.Stop();
+    public void TraceAudioStop()
+    {
+        if (TraceSound.isPlaying && !Enemy.traceMode) TraceSound.Stop();
     }
     void PlayStepSound()
     {
-        if(CollisionObs.Count > 0){
-          if(randomizePitch){
-            FootStep.pitch = 1.0f + Random.Range(-pitchRange, pitchRange);
-          }
-          FootStep.PlayOneShot(clips[Random.Range(0, clips.Length)]);
+        if (CollisionObs.Count > 0)
+        {
+            if (randomizePitch)
+            {
+                FootStep.pitch = 1.0f + Random.Range(-pitchRange, pitchRange);
+            }
+            FootStep.PlayOneShot(clips[Random.Range(0, clips.Length)]);
         }
         // ジャンプ中は足音を発生させない。
 
@@ -98,14 +104,14 @@ public class Player : MonoBehaviour
     // ステップサイクル
     void ProgressStepCycle(float speed)
     {
-        if(rb.velocity.sqrMagnitude > 0)
+        if (rb.velocity.sqrMagnitude > 0)
         {
             // 三項演算子（プログラミングテクニック）
             //stepCycle += (rb.velocity.magnitude + (speed * (isWalking ? 1f : runStepLengthen))) * Time.deltaTime;
-            stepCycle += rb.velocity.magnitude * speed *  Time.deltaTime ;
+            stepCycle += rb.velocity.magnitude * speed * Time.deltaTime;
         }
 
-        if(!(stepCycle > nextStep))
+        if (!(stepCycle > nextStep))
         {
             return;
         }
@@ -114,19 +120,23 @@ public class Player : MonoBehaviour
         PlayStepSound();
     }
 
-    public void OnTriggerEnter(Collider other){
-      switch(other.tag){
-        case "Item":
-          selectingitem = other.gameObject;
-          break;
-      }
+    public void OnTriggerEnter(Collider other)
+    {
+        switch (other.tag)
+        {
+            case "Item":
+                selectingitem = other.gameObject;
+                break;
+        }
 
     }
 
-    public void OnTriggerExit(Collider other){
-      if (other.CompareTag("Item")){
-        selectingitem = null;
-      }
+    public void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Item"))
+        {
+            selectingitem = null;
+        }
     }
 
     // public bool RayCastfromCenter(string ObjectName){
