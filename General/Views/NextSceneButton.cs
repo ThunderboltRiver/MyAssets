@@ -3,9 +3,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-namespace StartScene.View
+namespace General.View
 {
-    public class StartButton : MonoBehaviour, IPointerDownHandler
+    public class NextSceneButton : MonoBehaviour, IPointerDownHandler
     {
         public readonly BoolReactiveProperty isPressed = new BoolReactiveProperty(false);
         public void OnPointerDown(PointerEventData eventData)
