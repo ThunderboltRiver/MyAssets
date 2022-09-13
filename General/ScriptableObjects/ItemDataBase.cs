@@ -2,8 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-[CreateAssetMenu]
-public class Items: ScriptableObject
+
+[CreateAssetMenu(fileName = "ItemDataBase", menuName = "CreateItemDataBase")]
+public class ItemDataBase : ScriptableObject
 {
     public List<Item> itemList = new List<Item>();
 }

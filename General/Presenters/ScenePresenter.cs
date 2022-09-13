@@ -12,9 +12,9 @@ namespace General.Presenter
         void Start()
         {
             _button.isPressed
-            .Subscribe(isPressed =>
+            .Subscribe(value =>
             {
-                if (isPressed) _navigater.LoadScene();
+                if (value) _navigater.LoadScene();
             }).AddTo(this);
         }
     }
