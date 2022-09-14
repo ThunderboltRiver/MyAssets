@@ -4,19 +4,30 @@ using System.Linq;
 using UniRx;
 using UnityEngine;
 
-namespace MainGameScene.Models
+namespace MainGameScene.Model
 {
     public class SelectItem : MonoBehaviour
     {
-        public readonly StringReactiveProperty itemName = new StringReactiveProperty("");
+        public readonly ReactiveProperty<string> itemName = new ReactiveProperty<string>("");
 
-        void OnTriggerStay(Collider other)
+        void OnTriggerEnter(Collider other)
         {
             if (other.CompareTag("Item"))
             {
                 itemName.Value = other.gameObject.name;
                 return;
             }
+        }
+        void OnTriggerExit(Collider other)
+        {
+            if (other.name == itemName.Value)
+            {
+                InititemName();
+            }
+        }
+
+        public void InititemName()
+        {
             itemName.Value = "";
         }
 

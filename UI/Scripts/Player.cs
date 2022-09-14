@@ -120,24 +120,24 @@ public class Player : MonoBehaviour
         PlayStepSound();
     }
 
-    public void OnTriggerEnter(Collider other)
-    {
-        switch (other.tag)
-        {
-            case "Item":
-                selectingitem = other.gameObject;
-                break;
-        }
+    // public void OnTriggerEnter(Collider other)
+    // {
+    //     switch (other.tag)
+    //     {
+    //         case "Item":
+    //             selectingitem = other.gameObject;
+    //             break;
+    //     }
 
-    }
+    // }
 
-    public void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Item"))
-        {
-            selectingitem = null;
-        }
-    }
+    // public void OnTriggerExit(Collider other)
+    // {
+    //     if (other.CompareTag("Item"))
+    //     {
+    //         selectingitem = null;
+    //     }
+    // }
 
     // public bool RayCastfromCenter(string ObjectName){
     //   Vector2 center = new Vector2 (Screen.width/2, Screen.height/2);

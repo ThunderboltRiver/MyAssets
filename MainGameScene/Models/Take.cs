@@ -1,12 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace MainGameScene.Model
 {
-    public class Take
+    public class Take : MonoBehaviour
     {
         [SerializeField] InstanceDataBase iteminventry;
         [SerializeField] int maxitem;
