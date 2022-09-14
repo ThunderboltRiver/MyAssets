@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 namespace General.View
 {
-    public class NextSceneButton : MonoBehaviour, IPointerDownHandler
+    public class PressableUI : MonoBehaviour, IPointerDownHandler
     {
         public readonly BoolReactiveProperty isPressed = new BoolReactiveProperty(false);
         public void OnPointerDown(PointerEventData eventData)
