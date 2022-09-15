@@ -8,6 +8,7 @@ namespace MainGameScene.Model
     {
         [SerializeField] InstanceDataBase iteminventry;
         [SerializeField] int maxitem;
+        [SerializeField] Transform player;
         public void AddItemtoInventry(Instance item)
         {
             List<Instance> contents = iteminventry.InstanceList;
@@ -17,6 +18,12 @@ namespace MainGameScene.Model
                 return;
             }
             contents.Add(item);
+        }
+
+        public void SetItemAsChild(GameObject itemObject)
+        {
+            itemObject.transform.SetParent(player, false);
+            itemObject.SetActive(false);
         }
     }
 }

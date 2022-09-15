@@ -28,14 +28,15 @@ namespace MainGameScene.Presenter
                 _hand.gameObject.SetActive(isHandActive);
             }).AddTo(this);
 
-
             _hand.isPressed
             .Where(value => _selectitem.itemObject.Value != null && value)
             .Subscribe(value =>
             {
                 GameObject itemObject = _selectitem.itemObject.Value;
                 Instance iteminstance = _searchinstance.FromInstanceName(itemObject.name);
+                _take.SetItemAsChild(itemObject);
                 _take.AddItemtoInventry(iteminstance);
+                _selectitem.InititemObject();
             }).AddTo(this);
         }
     }

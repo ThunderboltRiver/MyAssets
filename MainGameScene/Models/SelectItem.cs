@@ -20,7 +20,7 @@ namespace MainGameScene.Model
         }
         void OnTriggerExit(Collider other)
         {
-            if (other == itemObject.Value)
+            if (other.gameObject == itemObject.Value)
             {
                 InititemObject();
             }
