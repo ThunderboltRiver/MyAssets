@@ -8,27 +8,27 @@ namespace MainGameScene.Model
 {
     public class SelectItem : MonoBehaviour
     {
-        public readonly ReactiveProperty<string> itemName = new ReactiveProperty<string>("");
+        public readonly ReactiveProperty<GameObject> itemObject = new ReactiveProperty<GameObject>(null);
 
         void OnTriggerEnter(Collider other)
         {
             if (other.CompareTag("Item"))
             {
-                itemName.Value = other.gameObject.name;
+                itemObject.Value = other.gameObject;
                 return;
             }
         }
         void OnTriggerExit(Collider other)
         {
-            if (other.name == itemName.Value)
+            if (other == itemObject.Value)
             {
-                InititemName();
+                InititemObject();
             }
         }
 
-        public void InititemName()
+        public void InititemObject()
         {
-            itemName.Value = "";
+            itemObject.Value = null;
         }
 
     }

@@ -21,19 +21,20 @@ namespace MainGameScene.Presenter
 
         void Start()
         {
-            _selectitem.itemName
-            .Subscribe(itemname =>
+            _selectitem.itemObject
+            .Subscribe(value =>
             {
-                bool isHandActive = itemname.Length > 0;
+                bool isHandActive = value != null;
                 _hand.gameObject.SetActive(isHandActive);
             }).AddTo(this);
 
 
             _hand.isPressed
-            .Where(value => _selectitem.itemName.Value.Length > 0 && value)
+            .Where(value => _selectitem.itemObject.Value != null && value)
             .Subscribe(value =>
             {
-                Instance iteminstance = _searchinstance.FromInstanceName(_selectitem.itemName.Value);
+                GameObject itemObject = _selectitem.itemObject.Value;
+                Instance iteminstance = _searchinstance.FromInstanceName(itemObject.name);
                 _take.AddItemtoInventry(iteminstance);
             }).AddTo(this);
         }
