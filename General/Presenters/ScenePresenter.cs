@@ -7,14 +7,15 @@ namespace General.Presenter
 {
     public class ScenePresenter : MonoBehaviour
     {
-        [SerializeField] private NextSceneButton _button;
+        [SerializeField] private PressableUI _button;
         [SerializeField] private SceneNavigater _navigater;
         void Start()
         {
             _button.isPressed
-            .Subscribe(isPressed =>
+            .Where(value => value)
+            .Subscribe(value =>
             {
-                if (isPressed) _navigater.LoadScene();
+                _navigater.LoadScene();
             }).AddTo(this);
         }
     }
