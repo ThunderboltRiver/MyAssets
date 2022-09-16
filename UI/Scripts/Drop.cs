@@ -5,45 +5,45 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
-public class Drop : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
+public class Drop : MonoBehaviour
 {
-    // Start is called before the first frame update
-    public InventryWindow IW;
-    private bool act = false;
-    [HideInInspector]
-    public bool Pressed = false;
-    private TextMeshProUGUI text;
-    void Start()
-    {
-        text = gameObject.GetComponent<TextMeshProUGUI>();
-        text.enabled = false;
-    }
+    // // Start is called before the first frame update
+    // public InventryWindow IW;
+    // private bool act = false;
+    // [HideInInspector]
+    // public bool Pressed = false;
+    // private TextMeshProUGUI text;
+    // void Start()
+    // {
+    //     text = gameObject.GetComponent<TextMeshProUGUI>();
+    //     text.enabled = false;
+    // }
 
-    // Update is called once per frame
-    void Update()
-    {
-        if (IW.isContaining && !act)
-        {
-            act = true;
-            text.enabled = act;
-        }
-        else if (!IW.isContaining)
-        {
-            act = false;
-            text.enabled = act;
-        }
+    // // Update is called once per frame
+    // void Update()
+    // {
+    //     if (IW.isContaining && !act)
+    //     {
+    //         act = true;
+    //         text.enabled = act;
+    //     }
+    //     else if (!IW.isContaining)
+    //     {
+    //         act = false;
+    //         text.enabled = act;
+    //     }
 
-    }
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        //act = false;
-        //text.enabled = act;
-        Pressed = true;
-    }
-    public void OnPointerUp(PointerEventData eventData)
-    {
-        Pressed = false;
-    }
+    // }
+    // public void OnPointerDown(PointerEventData eventData)
+    // {
+    //     //act = false;
+    //     //text.enabled = act;
+    //     Pressed = true;
+    // }
+    // public void OnPointerUp(PointerEventData eventData)
+    // {
+    //     Pressed = false;
+    // }
 
 
 }

@@ -6,9 +6,9 @@ using System;
 [CreateAssetMenu(fileName = "Item", menuName = "CreateItem")]
 public class Item : ScriptableObject
 {
-    [SerializeField] Type type;
-    [SerializeField] String infomation;
-    [SerializeField] Sprite sprite;
+    public readonly Type type;
+    public readonly String infomation;
+    public readonly Sprite sprite;
     public GameObject prefab;
     public enum Type
     {

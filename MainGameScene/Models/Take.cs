@@ -1,23 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UniRx;
 
 namespace MainGameScene.Model
 {
     public class Take : MonoBehaviour
     {
-        [SerializeField] InstanceDataBase iteminventry;
+        [SerializeField] ItemInventry _inventry;
         [SerializeField] int maxitem;
         [SerializeField] Transform player;
         public void AddItemtoInventry(Instance item)
         {
-            List<Instance> contents = iteminventry.InstanceList;
-            if (contents.Count >= maxitem)
+            if (_inventry.getCount() >= maxitem)
             {
                 Debug.Log("これ以上は持てない");
                 return;
             }
-            contents.Add(item);
+            _inventry.itemInventry.Add(item);
         }
 
         public void SetItemAsChild(GameObject itemObject)
