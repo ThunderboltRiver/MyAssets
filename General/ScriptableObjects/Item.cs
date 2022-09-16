@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using System;
 
 [Serializable]
 [CreateAssetMenu(fileName = "Item", menuName = "CreateItem")]
 public class Item : ScriptableObject
 {
-    public readonly Type type;
-    public readonly String infomation;
-    public readonly Sprite sprite;
+    public Type type;
+    public String infomation;
+    public Sprite sprite;
     public GameObject prefab;
     public enum Type
     {

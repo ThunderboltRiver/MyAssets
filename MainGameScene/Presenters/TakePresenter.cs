@@ -21,6 +21,9 @@ namespace MainGameScene.Presenter
 
         void Start()
         {
+            /// <summary>
+            /// アイテムを選択しているならHandを有効にする
+            /// </summary>
             _selectitem.itemObject
             .Subscribe(value =>
             {
@@ -28,16 +31,30 @@ namespace MainGameScene.Presenter
                 _hand.gameObject.SetActive(isHandActive);
             }).AddTo(this);
 
+            /// <summary>
+            /// Handが押されたらアイテムをインベントリに追加することを試みる
+            /// </summary>
             _hand.isPressed
             .Where(value => _selectitem.itemObject.Value != null && value)
             .Subscribe(value =>
             {
                 GameObject itemObject = _selectitem.itemObject.Value;
-                Instance iteminstance = _searchinstance.FromInstanceName(itemObject.name);
-                _take.SetItemAsChild(itemObject);
-                _take.AddItemtoInventry(iteminstance);
+                Instance iteminstance = _searchinstance.FromGameObject(itemObject);
+                _take.AddItemtoInventry(iteminstance, itemObject);
                 _selectitem.InititemObject();
+                _hand.isPressed.Value = false;
             }).AddTo(this);
+
+            /// <summary>
+            /// アイテムがインベントリに正常に追加されたら選択中のアイテムを初期化する
+            /// </summary>
+            // _take.isSucceed
+            // .Where(value => value)
+            // .Subscribe(value =>
+            // {
+            //     _selectitem.InititemObject();
+            //     Debug.Log("init!!!!");
+            // }).AddTo(this);
         }
     }
 

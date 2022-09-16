@@ -8,9 +8,9 @@ namespace MainGameScene.Model
     {
         [SerializeField] InstanceDataBase allInstanceData;
 
-        public Instance FromInstanceName(string InstanceName)
+        public Instance FromGameObject(GameObject go)
         {
-            return allInstanceData.InstanceList.Find(insrance => insrance.InstanceName == InstanceName);
+            return allInstanceData.InstanceList.Find(insrance => insrance.InstanceName == go.name);
         }
     }
 }

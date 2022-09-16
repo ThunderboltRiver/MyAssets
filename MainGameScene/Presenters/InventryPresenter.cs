@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -25,7 +26,8 @@ namespace MainGameScene.Presenter
             {
                 for (int i = 0; i < count; i++)
                 {
-                    _inventryWindows[i].image.sprite = _inventry.itemInventry[i].item.sprite;
+                    _inventryWindows[i].sprite.Value = _inventry.itemInventry[i].item.sprite;
+
                 }
             }).AddTo(this);
         }

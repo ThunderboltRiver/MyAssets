@@ -10,7 +10,7 @@ public class ItemGenerater : MonoBehaviour
     [SerializeField] Item item;
     public List<Vector3> positions = new List<Vector3>();
     [SerializeField] List<GameObject> itemobjects;
-    [SerializeField] InstanceDataBase instanceDataBase;
+    [SerializeField] InstanceDataBase allInstaceData;
     void Start()
     {
         itemobjects = generateItem();
@@ -27,6 +27,6 @@ public class ItemGenerater : MonoBehaviour
         iteminstance.InstanceName = itemobject.name;
         iteminstance.item = item;
         AssetDatabase.CreateAsset(iteminstance, $"Assets/DataSets/Instance/{itemobject.name}.asset");
-        instanceDataBase.InstanceList.Add(iteminstance);
+        allInstaceData.InstanceList.Add(iteminstance);
     }
 }
