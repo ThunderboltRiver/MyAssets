@@ -8,7 +8,8 @@ namespace General.View
 {
     public class PressableUI : MonoBehaviour
     {
-        public readonly BoolReactiveProperty isPressed = new BoolReactiveProperty(false);
+        public IReadOnlyReactiveProperty<bool> isPressed => _isPressed;
+        private readonly BoolReactiveProperty _isPressed = new BoolReactiveProperty(false);
 
         void Start()
         {
@@ -16,8 +17,13 @@ namespace General.View
 
             // PointerDown
             eventTrigger.OnPointerDownAsObservable()
-            .Subscribe(pointerEventData => isPressed.Value = true);
+            .Subscribe(pointerEventData => _isPressed.Value = true);
 
+        }
+
+        public void InitProperty()
+        {
+            _isPressed.Value = false;
         }
     }
 

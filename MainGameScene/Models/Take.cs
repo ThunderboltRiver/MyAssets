@@ -7,25 +7,20 @@ namespace MainGameScene.Model
 {
     public class Take : MonoBehaviour
     {
-        [SerializeField] ItemInventry _inventry;
-        [SerializeField] int maxItem;
+        //[SerializeField] ItemInventry _inventry;
         [SerializeField] Transform player;
 
-        public readonly ReactiveProperty<bool> isSucceed = new ReactiveProperty<bool>(false);
-        public void AddItemtoInventry(Instance itemInstance, GameObject itemObject)
+        public void TakeGameObject(GameObject itemObject)
         {
-            if (_inventry.itemInventry.Count >= maxItem)
-            {
-                Debug.Log("これ以上は持てない");
-                isSucceed.Value = false;
-                return;
-            }
+            // if (_inventry.itemInventry.Count >= maxItem)
+            // {
+            //     Debug.Log("これ以上は持てない");
+            //     return;
+            // }
             itemObject.SetActive(false);
             itemObject.transform.SetParent(player, false);
-            _inventry.itemInventry.Add(itemInstance);
             Debug.Log("追加完了");
             Debug.Log(itemObject);
-            isSucceed.Value = true;
         }
     }
 }

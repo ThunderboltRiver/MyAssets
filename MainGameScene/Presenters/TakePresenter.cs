@@ -13,8 +13,8 @@ namespace MainGameScene.Presenter
         //Models
         [SerializeField] Take _take;
         [SerializeField] SelectItem _selectitem;
-
         [SerializeField] SearchInstance _searchinstance;
+        [SerializeField] ItemInventry _itemInventry;
 
         //Views
         [SerializeField] PressableUI _hand;
@@ -39,10 +39,11 @@ namespace MainGameScene.Presenter
             .Subscribe(value =>
             {
                 GameObject itemObject = _selectitem.itemObject.Value;
+                _take.TakeGameObject(itemObject);
                 Instance iteminstance = _searchinstance.FromGameObject(itemObject);
-                _take.AddItemtoInventry(iteminstance, itemObject);
-                _selectitem.InititemObject();
-                _hand.isPressed.Value = false;
+                _itemInventry.AddItemtoInventry(iteminstance);
+                _selectitem.InitProperty();
+                _hand.InitProperty();
             }).AddTo(this);
 
             /// <summary>
