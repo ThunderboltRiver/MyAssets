@@ -11,9 +11,14 @@ namespace General.View
         public IReadOnlyReactiveProperty<bool> isPressed => _isPressed;
         private readonly BoolReactiveProperty _isPressed = new BoolReactiveProperty(false);
 
+        protected ObservableEventTrigger eventTrigger;
+
+        void Awake()
+        {
+            eventTrigger = gameObject.AddComponent<ObservableEventTrigger>();
+        }
         void Start()
         {
-            ObservableEventTrigger eventTrigger = gameObject.AddComponent<ObservableEventTrigger>();
 
             // PointerDown
             eventTrigger.OnPointerDownAsObservable()

@@ -58,6 +58,7 @@ public class Player : MonoBehaviour
         TraceAudioStop();
     }
 
+    //Model
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Enemy"))
@@ -75,6 +76,7 @@ public class Player : MonoBehaviour
         CollisionObs.Remove(ObjectName);
     }
 
+    //Views
     public void TraceAudioPlay()
     {
         if (!TraceSound.isPlaying && Enemy.traceMode) TraceSound.Play();
@@ -106,7 +108,7 @@ public class Player : MonoBehaviour
     {
         if (rb.velocity.sqrMagnitude > 0)
         {
-            // 三項演算子（プログラミングテクニック）
+
             //stepCycle += (rb.velocity.magnitude + (speed * (isWalking ? 1f : runStepLengthen))) * Time.deltaTime;
             stepCycle += rb.velocity.magnitude * speed * Time.deltaTime;
         }
