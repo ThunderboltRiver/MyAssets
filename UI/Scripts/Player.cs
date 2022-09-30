@@ -49,6 +49,8 @@ public class Player : MonoBehaviour
         TraceSound = sounds[2];
         fps = GetComponent<RigidbodyFirstPersonController>();
         rb = GetComponent<Rigidbody>();
+        int layerMask = 2 << 4;
+        Debug.Log(layerMask);
     }
 
     void Update()
@@ -56,6 +58,7 @@ public class Player : MonoBehaviour
         ProgressStepCycle(speed);
         TraceAudioPlay();
         TraceAudioStop();
+
     }
 
     //Model

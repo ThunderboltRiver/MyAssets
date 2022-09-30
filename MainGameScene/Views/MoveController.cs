@@ -7,13 +7,13 @@ using UnityEngine.UI;
 
 namespace MainGameScene.View
 {
-    public class ControlHandle : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+    public class MoveController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
 
         [SerializeField] RectTransform _handle;
-        [SerializeField] RectTransform _touchRun;
+        private RectTransform _touchRun;
         //public FixedButton SitButton; //右画面JoyStick
-        public Vector2 Direction { get; private set; } = Vector2.zero;
+        public Vector2 moveDirection { get; private set; } = Vector2.zero;
         private int PointerId;
         private bool Pressed;
         private Vector2 _handleOrigin;
@@ -26,6 +26,7 @@ namespace MainGameScene.View
         // Start is called before the first frame update
         void Start()
         {
+            _touchRun = GetComponent<RectTransform>();
             _handleOrigin = _handle.position;
             Debug.Log(_handleOrigin);
         }
@@ -36,22 +37,22 @@ namespace MainGameScene.View
             if (Pressed)
             {
                 touch = Input.touches[PointerId].position;
-                Vector2 Direction_tmp = touch - _handleOrigin;
+                Vector2 moveDirection_tmp = touch - _handleOrigin;
                 float touchRunRadius = _touchRun.sizeDelta.x;
-                if (Direction_tmp.sqrMagnitude <= (float)Math.Pow(touchRunRadius, 2f))
+                if (moveDirection_tmp.sqrMagnitude <= (float)Math.Pow(touchRunRadius, 2f))
                 {
                     _handle.position = touch;
 
                 }
                 else
                 {
-                    _handle.position = touchRunRadius * Direction_tmp.normalized + _handleOrigin;
+                    _handle.position = touchRunRadius * moveDirection_tmp.normalized + _handleOrigin;
                 }
-                Direction = Direction_tmp.normalized;
+                moveDirection = moveDirection_tmp.normalized;
             }
             else
             {
-                Direction = Vector2.zero;
+                moveDirection = Vector2.zero;
 
             }
 
