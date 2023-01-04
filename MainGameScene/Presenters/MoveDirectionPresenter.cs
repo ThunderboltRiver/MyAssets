@@ -6,19 +6,16 @@ namespace MainGameScene.Presenter
 {
     public class MoveDirectionPresenter : MonoBehaviour
     {
-        [SerializeField] SlopeJudger _slopeJuder;
-        [SerializeField] Walker _walker;
+        //[SerializeField] SlopeJudger _slopeJuder;
+        [SerializeField] Walker _subscriber;
         [SerializeField] MoveController _moveController;
 
         /// <summary>
         /// 通信の処理
         /// </summary>
-        void FixedUpdate()
+        void Update()
         {
-            if (_slopeJuder.IsWalkableSlope())
-            {
-                _walker.MovingDirection(_moveController.moveDirection, _slopeJuder.normalVector);
-            }
+            _subscriber.Subscribe(_moveController.moveDirection);
         }
 
     }

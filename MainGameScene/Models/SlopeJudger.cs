@@ -2,41 +2,52 @@ using UnityEngine;
 
 namespace MainGameScene.Model
 {
-    [RequireComponent(typeof(CapsuleCollider))]
-    public class SlopeJudger : MonoBehaviour
+    //[RequireComponent(typeof(CapsuleCollider))]
+    sealed class SlopeJudger//: MonoBehaviour
     {
         private CapsuleCollider _collider;
-        [SerializeField] float _maxAngle;
-        private float _castDistance;
-        private Vector3 _normalVector;
-        public Vector3 normalVector
-        {
-            get { return _normalVector; }
+        // float _maxAngle;
+        // private float _castDistance;
+        // private Vector3 _normalVector;
+        // public Vector3 normalVector
+        // {
+        //     get { return _normalVector; }
 
-        }
+        // }
 
-        void Start()
-        {
-            _collider = GetComponent<CapsuleCollider>();
-            _castDistance = _collider.height / 2f - _collider.radius + 0.01f;
-        }
-        private Vector3 NormalVector()
+        // void Start()
+        // {
+        //     _collider = GetComponent<CapsuleCollider>();
+        //     //Debug.Log(transform.position);
+        // }
+        public Vector3? GetNormalVectorOnPlane()
         {
             RaycastHit hitInfo;
-            if (Physics.SphereCast(transform.position, _collider.radius, Vector3.down,
-            out hitInfo, _castDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore))
+            if (Physics.SphereCast(_collider.transform.position, _collider.radius, Vector3.down,
+            out hitInfo, _collider.height / 2f - _collider.radius + 0.01f))
             {
                 return hitInfo.normal;
             }
-            return Vector3.up;
+            return null;
 
         }
-        public bool IsWalkableSlope()
+        public float? GetPlaneAngle()
         {
-            _normalVector = NormalVector();
-            Debug.Log(_normalVector);
-            return Vector3.Angle(_normalVector, Vector3.up) < _maxAngle;
+            if (GetNormalVectorOnPlane() == null) return null;
+            return Vector3.Angle((Vector3)GetNormalVectorOnPlane(), Vector3.up);
+        }
 
+        // public bool IsWalkableSlope()
+        // {
+        //     GetNormalVectorOnPlane();
+        //     return Vector3.Angle(_normalVector, Vector3.up) < _maxAngle;
+
+        // }
+
+        public SlopeJudger(CapsuleCollider collider)
+        {
+            this._collider = collider;
+            //this._maxAngle = maxAngle;
         }
     }
 }

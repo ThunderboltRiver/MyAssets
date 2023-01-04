@@ -1,0 +1,54 @@
+@startuml MoveRigidbody
+title クラス図
+Interface IDirectionController{
+    Vector2 Direction{get;}
+}
+Class DirectionView{
+    + Vector2 Direction{get;}
+    - Vector2 _Direction
+    - void Update()
+}
+Class MonoBehaviour
+Class DirectionPresenter{
+    - IDirectionController _controller
+    - IForceAccepter _accepter
+    - void Start()
+    - Vector3 TranslateDirection()
+}
+Interface IForceAccepter{
+    - Vector3 force
+    + void AcceptForce()
+} 
+Class RigidbodyManeger {
+    .. [SerializeField] ..
+    - Rigidbody _rb
+    .. [SerializeReference] ..
+    - IRigidbodyMover _mover
+    __
+    - void FiexedUpdate()
+}
+interface IRigidbodyMover {
+    void MoveRigidbody(Rigidbody _rb, Vector3 force)
+}
+note right of IRigidbodyMover : 実現したクラスは[System.Serializable]を属性に持たせる
+Class HumanoidMover{
+    .. [SerializeReference] ..
+    - float speed
+}
+Class VehicleMover{
+    .. [SerializeReference] ..
+    - float speed
+}
+
+Class Message
+
+DirectionPresenter --> IDirectionController
+IDirectionController <|.. DirectionView
+MonoBehaviour <|-- DirectionView
+DirectionPresenter --> IForceAccepter
+IForceAccepter <|.. RigidbodyManeger
+RigidbodyManeger *-- IRigidbodyMover
+IRigidbodyMover <|.. HumanoidMover
+IRigidbodyMover <|.. VehicleMover
+
+@enduml

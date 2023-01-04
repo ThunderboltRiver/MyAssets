@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,12 +6,14 @@ using UnityEngine.UI;
 
 namespace MainGameScene.View
 {
+    [RequireComponent(typeof(RectTransform))]
     public class MoveController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
 
         [SerializeField] RectTransform _handle;
-        private RectTransform _touchRun;
+        //private RectTransform _touchRun;
         //public FixedButton SitButton; //右画面JoyStick
+        float radius;
         public Vector2 moveDirection { get; private set; } = Vector2.zero;
         private int PointerId;
         private bool Pressed;
@@ -26,9 +27,10 @@ namespace MainGameScene.View
         // Start is called before the first frame update
         void Start()
         {
-            _touchRun = GetComponent<RectTransform>();
+            radius = GetComponent<RectTransform>().sizeDelta.x / 2;
             _handleOrigin = _handle.position;
-            Debug.Log(_handleOrigin);
+            Debug.Log(radius);
+
         }
 
         // Update is called once per frame
@@ -38,17 +40,18 @@ namespace MainGameScene.View
             {
                 touch = Input.touches[PointerId].position;
                 Vector2 moveDirection_tmp = touch - _handleOrigin;
-                float touchRunRadius = _touchRun.sizeDelta.x;
-                if (moveDirection_tmp.sqrMagnitude <= (float)Math.Pow(touchRunRadius, 2f))
+                if (moveDirection_tmp.sqrMagnitude <= (float)Math.Pow(radius, 2f))
                 {
                     _handle.position = touch;
-
+                    moveDirection = moveDirection_tmp / radius;
                 }
                 else
                 {
-                    _handle.position = touchRunRadius * moveDirection_tmp.normalized + _handleOrigin;
+                    _handle.position = radius * moveDirection_tmp.normalized + _handleOrigin;
+                    moveDirection = moveDirection_tmp.normalized;
                 }
-                moveDirection = moveDirection_tmp.normalized;
+
+                //Debug.Log(moveDirection);
             }
             else
             {
