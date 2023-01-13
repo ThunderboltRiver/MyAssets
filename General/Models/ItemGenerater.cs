@@ -26,7 +26,7 @@ public class ItemGenerater : MonoBehaviour
         Instance iteminstance = Instance.CreateInstance<Instance>();
         iteminstance.InstanceName = itemobject.name;
         iteminstance.item = item;
-        AssetDatabase.CreateAsset(iteminstance, $"Assets/DataSets/Instance/{itemobject.name}.asset");
+        //AssetDatabase.CreateAsset(iteminstance, $"Assets/DataSets/Instance/{itemobject.name}.asset");
         allInstaceData.InstanceList.Add(iteminstance);
     }
 }

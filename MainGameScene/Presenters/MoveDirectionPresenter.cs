@@ -13,7 +13,7 @@ namespace MainGameScene.Presenter
         /// <summary>
         /// 通信の処理
         /// </summary>
-        void Update()
+        void FixedUpdate()
         {
             _subscriber.Subscribe(_moveController.moveDirection);
         }
