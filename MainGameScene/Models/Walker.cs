@@ -1,103 +1,67 @@
-using System.Threading;
 using UnityEngine;
 
 namespace MainGameScene.Model
 {
-    [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
-    public class Walker : MonoBehaviour, IRigidbodyMover, ISubscriber<Vector2>
+    public class Walker : IInputHandler<Vector2>, IRigidbodyMover
     {
-        private Rigidbody _rigidbody;
-        private CapsuleCollider _capsuleCollider;
         private SlopeJudger _slopeJudger;
-        private Vector3 _inputedDirection;
-        private bool isGrounded;
-        public Vector3 Velocity
-        {
-            get { return _rigidbody.velocity; }
-        }
+        private float _speed;
+        private float _maxAngle;
 
-        public bool Grounded
-        {
-            get { return isGrounded; }
-        }
+        public Rigidbody rigidbody { get; }
+        public bool isGrounded { get => _slopeJudger.GetNormalVectorOnPlane() != null; }
 
-        public bool Jumping
-        {
-            get { return !isGrounded; }
-        }
+        public bool isMoving { get => isGrounded && rigidbody.velocity != Vector3.zero; }
 
-        public bool Running
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        /// <param name="rigidbody">"移動対象のrigidbody"</param>
+        /// <param name="slopeJudger">接地する平面を判定するオブジェクト</param>
+        /// <param name="speed">移動速度の比率</param>
+        /// <param name="maxAngle">登ることが可能な平面の最大角度</param>
+        public Walker(Rigidbody rigidbody, SlopeJudger slopeJudger, float speed, float maxAngle)
         {
-            get
-            {
-#if !MOBILE_INPUT
-                return isGrounded && _rigidbody.velocity != Vector3.zero;
-#else
-	            return false;
-#endif
-            }
-        }
-
-        [SerializeField] private float Speed;
-        [SerializeField] private float _maxAngle;
-        private void Start()
-        {
-            _rigidbody = GetComponent<Rigidbody>();
-            _capsuleCollider = GetComponent<CapsuleCollider>();
-            _slopeJudger = new SlopeJudger(_capsuleCollider);
-        }
-
-        private void FixedUpdate()
-        {
-            isGrounded = _slopeJudger.GetNormalVectorOnPlane() != null;
-            //平面に接地しているときに実行
-            if (isGrounded)
-            {
-                // 物理計算の軽量化のための処理(なくても正常に動作する)
-                // ベクトルが入力されていないときに実行
-                if (_inputedDirection == Vector3.zero)
-                {
-                    _rigidbody.isKinematic = true;
-                    return;
-                }
-                _rigidbody.isKinematic = false;
-
-                // 接地している平面の角度が_maxAngleをこえていなければ移動処理を行う
-                if ((float)_slopeJudger.GetPlaneAngle() <= _maxAngle)
-                {
-                    //平面上の単位法線ベクトルを取得
-                    Vector3 normalOnPlane = (Vector3)_slopeJudger.GetNormalVectorOnPlane();
-                    //rididbodyの移動
-                    MoveRigidbody(_rigidbody, AccelerationOnPlane(_inputedDirection, normalOnPlane, Speed));
-                }
-            }
+            this.rigidbody = rigidbody;
+            this._slopeJudger = slopeJudger;
+            this._speed = speed;
+            this._maxAngle = maxAngle;
         }
 
         //入力を受け付ける窓口
-        public void Subscribe(Vector2 input)
+        public void HandleInput(Vector2 inputedAcceleration)
         {
-            if (IsValidVector(input))
+            if (IsValidVector(inputedAcceleration))
             {
-                _inputedDirection = transform.forward * input.y + transform.right * input.x;
-                return;
+                MoveRigidbody(rigidbody.transform.forward * inputedAcceleration.y + rigidbody.transform.right * inputedAcceleration.x);
             }
-            _inputedDirection = Vector3.zero;
         }
         /// <summary>
-        /// IRigidbodyMover.MoveRigidbodyの実装
-        /// 等速直線運動をするように実装
-        /// 速度微調整のためのメンバ変数Speedを使用
+        /// 等速直線運動をする
         /// </summary>
         /// <param name="rigidboy">力を加える対象</param>
         /// <param name="force">目的の加速度ベクトル</param>
-        public void MoveRigidbody(Rigidbody rigidbody, Vector3 force)
+        public void MoveRigidbody(Vector3 inputedAcceleration)
         {
-            rigidbody.AddForce(force - rigidbody.velocity / Time.fixedDeltaTime, ForceMode.Acceleration);
-        }
-
-        private bool IsValidVector(Vector2 input)
-        {
-            return input.sqrMagnitude <= 1.02f;
+            //平面に接地しているときに実行
+            if (isGrounded && IsValidVector(inputedAcceleration))
+            {
+                // 物理計算の軽量化のための処理(なくても正常に動作する)
+                // ベクトルが入力されていないときに実行
+                if (inputedAcceleration == Vector3.zero)
+                {
+                    rigidbody.isKinematic = true;
+                    return;
+                }
+                rigidbody.isKinematic = false;
+                // 接地している平面の角度が_maxAngleをこえていなければ移動処理を行う
+                if ((float)_slopeJudger.GetPlaneAngle() <= _maxAngle)
+                {
+                    //rididbodyの移動
+                    rigidbody.AddForce(AccelerationOnPlane(inputedAcceleration, (Vector3)_slopeJudger.GetNormalVectorOnPlane(), _speed)
+                        - rigidbody.velocity / Time.fixedDeltaTime, ForceMode.Acceleration);
+                }
+            }
         }
 
         /// <summary>
@@ -106,7 +70,7 @@ namespace MainGameScene.Model
         /// <param name="originAccel">元々の加速度ベクトル</param>
         /// <param name="normalOnPlane">平面の単位法線ベクトル</param>
         /// <param name="rate">移動加速度の比率</param>
-        /// <returns></returns>
+        /// <returns>加速度ベクトル</returns>
         private Vector3 AccelerationOnPlane(Vector3 originAccel, Vector3 normalOnPlane, float rate)
         {
             //平面上での加速度ベクトルを計算
@@ -115,6 +79,25 @@ namespace MainGameScene.Model
             Vector3 gravityOnPlane = Vector3.ProjectOnPlane(Physics.gravity, normalOnPlane);
             //重力加速度を無視した加速度を返す
             return Accelaration - gravityOnPlane;
+        }
+
+        /// <summary>
+        /// HandleInputにおける入力値バリデーション
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns>bool</returns>
+        private bool IsValidVector(Vector2 vector)
+        {
+            return vector.sqrMagnitude <= 1.02f;
+        }
+        /// <summary>
+        /// MoveRigidbodyにおける入力値バリデーション
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns>bool</returns>
+        private bool IsValidVector(Vector3 vector)
+        {
+            return vector.sqrMagnitude <= 2.0f;
         }
 
     }

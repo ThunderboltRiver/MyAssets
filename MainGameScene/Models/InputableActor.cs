@@ -1,38 +1,32 @@
 using System.Collections.Generic;
 using UnityEngine;
+using MainGameScene.Messages;
 
 namespace MainGameScene.Model
 {
-    public readonly struct InputEvent<TValue, TKey>
+    public class InputableActor<TValue, TKey> : MonoBehaviour, IInputable<Event<TValue, TKey>>
     {
-        public TValue Value { get; init; }
-        public TKey Key { get; init; }
-
-        public InputEvent(TValue value, TKey key)
+        private Dictionary<TKey, IInputHandler<TValue>> _inputHandlers = new Dictionary<TKey, IInputHandler<TValue>>() { };
+        public void AcceptInput(Event<TValue, TKey> inputEvent)
         {
-            Value = value;
-            Key = key;
-        }
-    }
-    public class InputableActor<TValue, TKey> : IInputable<InputEvent<TValue, TKey>>
-    {
-        private Dictionary<TKey, IInputHandler<TValue>> _inputHandlers;
-        public void AcceptInput(InputEvent<TValue, TKey> inputEvent)
-        {
-            if (_inputHandlers.ContainsKey(inputEvent.Key))
+            if (_inputHandlers.ContainsKey(inputEvent.Key()))
             {
-                _inputHandlers[inputEvent.Key].HandleInput(inputEvent.Value);
+                _inputHandlers[inputEvent.Key()].HandleInput(inputEvent.Value());
             }
         }
-
-        protected void AddInputHandler(TKey key, IInputHandler<TValue> inputHandler)
+        /// <summary>
+        /// IInputHandlerの追加
+        /// </summary>
+        /// <param name="inputHandler">追加したいハンドラ</param>
+        /// <param name="key">追加するハンドラにアクセスするキー</param>
+        protected void AddInputHandler(IInputHandler<TValue> inputHandler, TKey key)
         {
-            if (_inputHandlers.ContainsKey(key))
+            if (!_inputHandlers.ContainsKey(key))
             {
                 _inputHandlers.Add(key, inputHandler);
                 return;
             }
-            Debug.Log("This Key has already been asigned.");
+            Debug.Log("This Key() has already been asigned.");
         }
     }
 }

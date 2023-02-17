@@ -2,24 +2,9 @@ using UnityEngine;
 
 namespace MainGameScene.Model
 {
-    //[RequireComponent(typeof(CapsuleCollider))]
-    sealed class SlopeJudger//: MonoBehaviour
+    public sealed class SlopeJudger
     {
         private CapsuleCollider _collider;
-        // float _maxAngle;
-        // private float _castDistance;
-        // private Vector3 _normalVector;
-        // public Vector3 normalVector
-        // {
-        //     get { return _normalVector; }
-
-        // }
-
-        // void Start()
-        // {
-        //     _collider = GetComponent<CapsuleCollider>();
-        //     //Debug.Log(transform.position);
-        // }
         public Vector3? GetNormalVectorOnPlane()
         {
             RaycastHit hitInfo;
@@ -37,17 +22,10 @@ namespace MainGameScene.Model
             return Vector3.Angle((Vector3)GetNormalVectorOnPlane(), Vector3.up);
         }
 
-        // public bool IsWalkableSlope()
-        // {
-        //     GetNormalVectorOnPlane();
-        //     return Vector3.Angle(_normalVector, Vector3.up) < _maxAngle;
-
-        // }
-
         public SlopeJudger(CapsuleCollider collider)
         {
             this._collider = collider;
-            //this._maxAngle = maxAngle;
+
         }
     }
 }
