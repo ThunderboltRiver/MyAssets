@@ -7,6 +7,6 @@ namespace InputableActor
 {
     public interface ISettingLoadable
     {
-        void LoadSetting<T>(T setting) { }
+        void LoadSetting<T>(T setting);
     }
 }

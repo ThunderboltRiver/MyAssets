@@ -85,6 +85,11 @@ namespace InputableActor
         {
             _inputHandlers.Clear();
         }
+
+        public void LoadSetting<TSetting>(TKey key, string settingKey, TSetting setting)
+        {
+            GetInputHandler(_inputedKey).LoadSetting(settingKey, setting);
+        }
         protected virtual void OnUpdate(TKey key, TValue value) { }
         protected virtual void OnFixedUpdate(TKey key, TValue value) { }
         protected virtual void OnLateUpdate(TKey key, TValue value) { }

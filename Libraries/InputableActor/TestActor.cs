@@ -7,13 +7,13 @@ namespace InputableActor
 #if TEST_THIS_LIBRARY
 
     [Serializable]
-    public class TestHandler : InputHandler<float>, ISettingLoadable
+    public class TestHandler : InputHandler<float>
     {
-        [SerializeField] private String message = "";
+        [SerializeField] private string message;
 
-        public void LoadSetting(String setting)
+        public override void LoadSetting<TSetting>(string settingKey, TSetting setting)
         {
-            message = setting;
+            if (settingKey == nameof(message) && (setting is string _message)) message = _message;
         }
 
         protected override void OnUpdate(float value)
@@ -33,7 +33,7 @@ namespace InputableActor
         public void Start()
         {
             AddInputHandler(0, handler);
-            Debug.Log("This is Test");
+            LoadSetting(0, "message", "LoadSetting");
         }
         protected override void OnUpdate(int key, float value)
         {

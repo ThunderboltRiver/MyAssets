@@ -40,6 +40,9 @@ namespace InputableActor
         protected virtual void OnUpdate(TValue value) { }
         protected virtual void OnLateUpdate(TValue value) { }
         protected virtual void OnFixedUpdate(TValue value) { }
+
+        public virtual void LoadSetting<TSetting>(string settingKey, TSetting setting) { }
+
     }
     /// <summary>
     /// 何もしないジェネリックなハンドラクラス(シングルトン)
