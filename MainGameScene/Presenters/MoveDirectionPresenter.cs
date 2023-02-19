@@ -12,7 +12,7 @@ namespace MainGameScene.Presenter
         [SerializeField] MoveController _moveController;
         [SerializeField] PublishableActor<Vector2> _strokableArea;
 
-        void LateUpdate()
+        void Update()
         {
             //Debug.Log(_strokableArea.Publish());
             _fpsActor.AcceptInput(new Event<Vector2, int>(_strokableArea.Publish(), (int)FirstPersonActor.AcceptableKeys.RotateCamera));
