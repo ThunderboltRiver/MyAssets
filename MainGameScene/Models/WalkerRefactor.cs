@@ -62,12 +62,6 @@ namespace MainGameScene.Model
         {
             inputQueueMask = 1;
         }
-        protected override void OnUpdate()
-        {
-            //OnFixedUpdateの更新まで入力値は無視する
-            Debug.Log($"inputQueue : {inputQueue.Count}");
-        }
-
         protected override void OnFixedUpdate()
         {
             inputQueue.TryDequeue(out inputedAcceleration);

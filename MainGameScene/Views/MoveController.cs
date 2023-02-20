@@ -29,7 +29,6 @@ namespace MainGameScene.View
         {
             radius = GetComponent<RectTransform>().sizeDelta.x / 2;
             _handleOrigin = _handle.position;
-            Debug.Log(radius);
 
         }
 

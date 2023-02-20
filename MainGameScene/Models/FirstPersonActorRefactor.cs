@@ -25,7 +25,6 @@ namespace MainGameScene.Model
         protected override void OnStart()
         {
             _walker.AddComponents(GetComponent<Rigidbody>(), GetComponent<CapsuleCollider>());
-            Debug.Log(_walker);
             AddInputHandler((int)AcceptableKeys.MoveRigidbody, _walker);
             AddInputHandler((int)AcceptableKeys.RotateCamera, _fpsCamera);
         }
