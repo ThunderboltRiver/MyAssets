@@ -20,10 +20,10 @@ namespace MainGameScene.Model
         }
         void Start()
         {
-            _walker = new Walker(GetComponent<Rigidbody>(), new SlopeJudger(GetComponent<CapsuleCollider>()), _speed, _maxAngle);
-            _fpsCamera = new FirstPersonCamera(_cameraTransform, GetComponent<Rigidbody>().transform, _cameraSensitivity);
-            AddInputHandler(_walker, (int)AcceptableKeys.MoveRigidbody);
-            AddInputHandler(_fpsCamera, (int)AcceptableKeys.RotateCamera);
+            // _walker = new Walker(GetComponent<Rigidbody>(), new SlopeJudger(GetComponent<CapsuleCollider>()), _speed, _maxAngle);
+            // _fpsCamera = new FirstPersonCamera(_cameraTransform, GetComponent<Rigidbody>().transform, _cameraSensitivity);
+            // AddInputHandler(_walker, (int)AcceptableKeys.MoveRigidbody);
+            // AddInputHandler(_fpsCamera, (int)AcceptableKeys.RotateCamera);
         }
     }
 }

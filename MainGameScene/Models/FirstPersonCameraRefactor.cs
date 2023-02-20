@@ -6,7 +6,7 @@ using InputableActor;
 namespace MainGameScene.Model
 {
     [Serializable]
-    public class FirstPersonCamera : InputHandler<Vector2>
+    public class FirstPersonCameraRefactor : InputHandlerRefactor<Vector2>
     {
         [Serializable]
         private class Setting
@@ -17,10 +17,17 @@ namespace MainGameScene.Model
         [SerializeField] private Transform _cameraTransform;
         [SerializeField] private Transform _playerTransform;
         [SerializeField] private Setting setting;
-        protected override void OnLateUpdate(Vector2 input)
+        private Vector2 inputedValue;
+
+        protected override void OnAwake()
         {
+            inputQueueMask = 1;
+        }
+        protected override void OnLateUpdate()
+        {
+            inputQueue.TryDequeue(out inputedValue);
             Debug.Log("Camera");
-            RotateCamera(input);
+            RotateCamera(inputedValue);
         }
 
         private void RotateCamera(Vector2 input)

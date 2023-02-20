@@ -35,10 +35,6 @@ namespace InputableActor
             AddInputHandler(0, handler);
             LoadSetting(0, "message", "LoadSetting");
         }
-        protected override void OnUpdate(int key, float value)
-        {
-            //AcceptInput(0, Time.deltaTime);
-        }
         public void onDestroy()
         {
             Destroy();

@@ -4,7 +4,7 @@ using InputableActor;
 namespace MainGameScene.Model
 {
     [Serializable]
-    public class Walker : InputHandler<Vector2>
+    public class WalkerRefactor : InputHandlerRefactor<Vector2>
     {
 
         [Serializable]
@@ -19,6 +19,7 @@ namespace MainGameScene.Model
         [SerializeField] private Rigidbody rigidbody;
         private SlopeJudger _slopeJudger;
         [SerializeField] private Setting setting;
+        protected Vector2 inputedAcceleration;
         public bool isGrounded { get => _slopeJudger.GetNormalVectorOnPlane() != null; }
 
         public bool isMoving { get => isGrounded && rigidbody.velocity != Vector3.zero; }
@@ -37,34 +38,41 @@ namespace MainGameScene.Model
         //     this._speed = speed;
         //     this._maxAngle = maxAngle;
         // }
-        public Walker(Rigidbody rigidbody, SlopeJudger slopeJudger)
+        public WalkerRefactor(Rigidbody rigidbody, SlopeJudger slopeJudger) : base()
         {
             this.rigidbody = rigidbody;
             this._slopeJudger = slopeJudger;
-            onAwake();
         }
 
-        public Walker(Rigidbody rigidbody, CapsuleCollider collider)
+        public WalkerRefactor(Rigidbody rigidbody, CapsuleCollider collider) : base()
         {
             this.rigidbody = rigidbody;
             this._slopeJudger = new(collider);
-            onAwake();
+        }
+        public WalkerRefactor()
+        {
+
+        }
+        public override void LoadSetting<TSetting>(string settingKey, TSetting setting)
+        {
+            if (setting is nameof(rigidbody) && setting is Rigidbody _rigidbody) this.rigidbody = _rigidbody;
+            if (setting is "collider" && setting is CapsuleCollider _collider) this._slopeJudger = new(_collider);
+        }
+        protected override void OnAwake()
+        {
+            inputQueueMask = 1;
+        }
+        protected override void OnUpdate()
+        {
+            //OnFixedUpdateの更新まで入力値は無視する
+            Debug.Log($"inputQueue : {inputQueue.Count}");
         }
 
-        public Walker()
+        protected override void OnFixedUpdate()
         {
-            onAwake();
-        }
-
-        protected void onAwake()
-        {
-        }
-
-        protected override void OnFixedUpdate(Vector2 inputedAcceleration)
-        {
+            inputQueue.TryDequeue(out inputedAcceleration);
             if (IsValidVector(inputedAcceleration))
             {
-
                 MoveRigidbody(rigidbody.transform.forward * inputedAcceleration.y + rigidbody.transform.right * inputedAcceleration.x);
             }
         }
