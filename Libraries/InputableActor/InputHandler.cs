@@ -14,63 +14,6 @@ namespace InputableActor
     public abstract class InputHandler<TValue>
     {
         /// <summary>
-        /// ActorのUpdate関数内で呼び出される
-        /// </summary>
-        /// <param name="value"></param>
-        internal void Update(TValue value)
-        {
-            OnUpdate(value);
-        }
-        /// <summary>
-        /// ActorのLateUpdate関数内で呼び出される
-        /// </summary>
-        /// <param name="value"></param>
-        internal void LateUpdate(TValue value)
-        {
-            OnLateUpdate(value);
-        }
-        /// <summary>
-        /// ActorのFixedUpdate内で呼び出される
-        /// </summary>
-        /// <param name="value"></param>
-
-        internal void FixedUpdate(TValue value)
-        {
-            OnFixedUpdate(value);
-        }
-
-        protected virtual void OnUpdate(TValue value) { }
-        protected virtual void OnLateUpdate(TValue value) { }
-        protected virtual void OnFixedUpdate(TValue value) { }
-
-        public virtual void LoadSetting<TSetting>(string settingKey, TSetting setting) { }
-
-    }
-    /// <summary>
-    /// 何もしないジェネリックなハンドラクラス(シングルトン)
-    /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    internal sealed class EmptyHandler<TValue> : InputHandler<TValue>
-    {
-        internal static EmptyHandler<TValue> Singletone = new();
-#if TEST_THIS_LIBRARY
-        protected override void OnUpdate(TValue value)
-        {
-            Debug.Log("This is lib test at OnUpdate");
-        }
-        protected override void OnLateUpdate(TValue value)
-        {
-            Debug.Log("This is lib test at OnLateUpdate");
-        }
-
-#endif
-        private EmptyHandler() { }
-
-    }
-
-    public abstract class InputHandlerRefactor<TValue>
-    {
-        /// <summary>
         /// 入力値のキュー
         /// </summary>
         protected ConcurrentQueue<TValue> inputQueue = new();
@@ -123,16 +66,16 @@ namespace InputableActor
 
         public virtual void LoadSetting<TSetting>(string settingKey, TSetting setting) { }
 
-        public InputHandlerRefactor()
+        public InputHandler()
         {
             OnAwake();
             Debug.Log("OnAwake");
         }
 
     }
-    internal sealed class EmptyHandlerRefactor<TValue> : InputHandlerRefactor<TValue>
+    internal sealed class EmptyHandler<TValue> : InputHandler<TValue>
     {
-        internal static EmptyHandlerRefactor<TValue> Singletone = new();
+        internal static EmptyHandler<TValue> Singletone = new();
 #if TEST_THIS_LIBRARY
         protected override void OnUpdate()
         {
@@ -143,7 +86,7 @@ namespace InputableActor
             Debug.Log("This is lib test at OnLateUpdate");
         }
 #endif
-        private EmptyHandlerRefactor() { }
+        private EmptyHandler() { }
 
 
     }

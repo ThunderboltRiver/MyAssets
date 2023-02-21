@@ -7,16 +7,6 @@ namespace InputableActor
 {
     public class Actor<TValue> : MonoBehaviour
     {
-        private ConcurrentQueue<TValue> eventQueue = new();
-        private TValue _inputedValue;
-        public void AcceptInput(TValue value)
-        {
-            eventQueue.Enqueue(InputFilter(value));
-        }
-        protected virtual TValue InputFilter(TValue value)
-        {
-            return value;
-        }
 
         private InputHandler<TValue> _inputHandler = EmptyHandler<TValue>.Singletone;
         public void Start()
@@ -25,22 +15,20 @@ namespace InputableActor
         }
         public void Update()
         {
-            eventQueue.TryDequeue(out _inputedValue);
-            _inputHandler.Update(_inputedValue);
             OnUpdate();
-
+            _inputHandler.Update();
         }
 
         public void FixedUpdate()
         {
-            _inputHandler.FixedUpdate(_inputedValue);
             OnFixedUpdate();
+            _inputHandler.FixedUpdate();
         }
 
         public void LateUpdate()
         {
-            _inputHandler.LateUpdate(_inputedValue);
             OnLateUpdate();
+            _inputHandler.LateUpdate();
         }
         public void LoadSetting<TSetting>(string settingKey, TSetting setting)
         {
@@ -50,6 +38,10 @@ namespace InputableActor
         protected void ChangeHandler(InputHandler<TValue> inputHandler)
         {
             _inputHandler = inputHandler;
+        }
+        public void AcceptInput(TValue value)
+        {
+            _inputHandler.AcceptInput(value);
         }
         protected virtual void OnStart() { }
         protected virtual void OnUpdate() { }
@@ -64,9 +56,6 @@ namespace InputableActor
     /// </summary>
     public class Actor<TKey, TValue> : MonoBehaviour
     {
-        private ConcurrentQueue<Event<TKey, TValue>> eventQueue = new();
-        private TKey _inputedKey;
-        private TValue _inputedValue;
         private Dictionary<TKey, InputHandler<TValue>> _inputHandlers = new();
 
         /// <summary>
@@ -76,21 +65,7 @@ namespace InputableActor
         /// <param name="value">入力値</param>
         public void AcceptInput(TKey key, TValue value)
         {
-            TKey _key;
-            TValue _value;
-            (_key, _value) = InputFilter(key, value);
-            eventQueue.Enqueue(new Event<TKey, TValue>(_key, _value));
-        }
-
-        /// <summary>
-        /// 入力値のフィルタリングをする仮想関数
-        /// </summary>
-        /// <param name="key">このオブジェクトが持つ特定の機能(ハンドラ)にアクセスするためのキー</param>
-        /// <param name="value">入力値</param>
-        /// <returns>フィルタリングされた入力値(デフォルトではフィルタリングしない)</returns>
-        protected virtual (TKey, TValue) InputFilter(TKey key, TValue value)
-        {
-            return (key, value);
+            GetInputHandler(key).AcceptInput(value);
         }
 
         /// <summary>
@@ -128,32 +103,34 @@ namespace InputableActor
         {
             Destroy();
             OnStart();
-            //yield return StartCoroutine(EventCorutine(eventQueue));
         }
         public void Update()
         {
-            // SycleEventQueue((inputedEvent) => GetInputHandler(inputedEvent.Key).Update(inputedEvent.Value));
-            EventCorutine(eventQueue).MoveNext();
-            GetInputHandler(_inputedKey).Update(_inputedValue);
             OnUpdate();
-
+            foreach (InputHandler<TValue> inputHandler in _inputHandlers.Values)
+            {
+                inputHandler.Update();
+            }
         }
 
         public void FixedUpdate()
         {
-            // SycleEventQueue((inputedEvent) => GetInputHandler(inputedEvent.Key).FixedUpdate(inputedEvent.Value));
-            EventCorutine(eventQueue).MoveNext();
-            GetInputHandler(_inputedKey).FixedUpdate(_inputedValue);
-            eventQueue.Clear();
             OnFixedUpdate();
+            foreach (InputHandler<TValue> inputHandler in _inputHandlers.Values)
+            {
+                inputHandler.FixedUpdate();
+            }
+
         }
 
         public void LateUpdate()
         {
-            // SycleEventQueue((inputedEvent) => GetInputHandler(inputedEvent.Key).LateUpdate(inputedEvent.Value));
-            Debug.Log($"Key:{_inputedKey} ||| Value:{_inputedValue}");
-            GetInputHandler(_inputedKey).LateUpdate(_inputedValue);
             OnLateUpdate();
+            foreach (InputHandler<TValue> inputHandler in _inputHandlers.Values)
+            {
+                inputHandler.LateUpdate();
+            }
+
         }
 
         protected void Destroy()
@@ -161,33 +138,11 @@ namespace InputableActor
             _inputHandlers.Clear();
         }
 
-        // private void SycleEventQueue(Action<Event<TKey, TValue>> onSycleEvent)
-        // {
-        //     Event<TKey, TValue> eventCash;
-        //     int i = 0;
-        //     while (i < eventQueue.Count)
-        //     {
-        //         eventQueue.TryPeek(out eventCash);
-        //         onSycleEvent(eventCash);
-        //         i++;
-        //     }
-        // }
-        private IEnumerator EventCorutine(ConcurrentQueue<Event<TKey, TValue>> queue)
-        {
-            Event<TKey, TValue> inputedEvent;
-            while (queue.TryDequeue(out inputedEvent))
-            {
-                (_inputedKey, _inputedValue) = (inputedEvent.Key, inputedEvent.Value);
-                yield return null;
-            }
-
-        }
-
-
         public void LoadSetting<TSetting>(TKey key, string settingKey, TSetting setting)
         {
-            GetInputHandler(_inputedKey).LoadSetting(settingKey, setting);
+            GetInputHandler(key).LoadSetting(settingKey, setting);
         }
+        protected virtual void OnAwake() { }
         protected virtual void OnStart() { }
         protected virtual void OnUpdate() { }
         protected virtual void OnFixedUpdate() { }
@@ -195,8 +150,7 @@ namespace InputableActor
 
         ~Actor()
         {
-            Destroy();
-            Debug.Log("CalledDestroy");
+            OnAwake();
         }
     }
 }

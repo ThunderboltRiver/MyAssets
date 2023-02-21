@@ -14,7 +14,6 @@ namespace General.Singletons
                 I.OnAwake();
                 return;
             }
-
             Destroy(this);
         }
 

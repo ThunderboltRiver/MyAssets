@@ -16,9 +16,8 @@ namespace InputableActor
             if (settingKey == nameof(message) && (setting is string _message)) message = _message;
         }
 
-        protected override void OnUpdate(float value)
+        protected override void OnUpdate()
         {
-            Debug.Log($"{message}:{value}");
         }
 
         ~TestHandler()

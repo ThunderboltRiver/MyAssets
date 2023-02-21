@@ -1,29 +1,32 @@
 using UnityEngine;
+using InputableActor;
 
 namespace MainGameScene.Model
 {
 
     [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
-    public class FirstPersonActor : InputableActor<Vector2, int>
+    public class FirstPersonActor : Actor<int, Vector2>
     {
-        private IInputHandler<Vector2> _walker;
-        private IInputHandler<Vector2> _fpsCamera;
-        [SerializeField] private float _speed;
-        [SerializeField] private float _maxAngle;
-        [SerializeField] private Transform _cameraTransform;
-        [SerializeField] private float _cameraSensitivity;
+        [SerializeField] private Walker _walker;
+        [SerializeField] private FirstPersonCamera _fpsCamera;
+        //[SerializeField] private Transform _cameraTransform;s
 
         public enum AcceptableKeys
         {
             MoveRigidbody,
             RotateCamera,
         }
-        void Start()
+        void Awake()
         {
-            // _walker = new Walker(GetComponent<Rigidbody>(), new SlopeJudger(GetComponent<CapsuleCollider>()), _speed, _maxAngle);
-            // _fpsCamera = new FirstPersonCamera(_cameraTransform, GetComponent<Rigidbody>().transform, _cameraSensitivity);
-            // AddInputHandler(_walker, (int)AcceptableKeys.MoveRigidbody);
-            // AddInputHandler(_fpsCamera, (int)AcceptableKeys.RotateCamera);
+
+            //_fpsCamera = new(_cameraTransform, GetComponent<Rigidbody>().transform);
+
+        }
+        protected override void OnStart()
+        {
+            _walker.AddComponents(GetComponent<Rigidbody>(), GetComponent<CapsuleCollider>());
+            AddInputHandler((int)AcceptableKeys.MoveRigidbody, _walker);
+            AddInputHandler((int)AcceptableKeys.RotateCamera, _fpsCamera);
         }
     }
 }
