@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UniRx;
 using MainGameScene.Model;
-using General.View;
+using General.Views;
 
 namespace MainGameScene.Presenter
 {

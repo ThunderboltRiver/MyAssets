@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-namespace General.View
+namespace General.Views
 {
     public class PressableUI : MonoBehaviour
     {
@@ -22,7 +22,8 @@ namespace General.View
 
             // PointerDown
             eventTrigger.OnPointerDownAsObservable()
-            .Subscribe(pointerEventData => _isPressed.Value = true);
+            .Subscribe(pointerEventData => _isPressed.Value = true)
+            .AddTo(this);
 
         }
 

@@ -2,7 +2,7 @@ using System.Net.Mime;
 using UnityEngine;
 using UnityEngine.UI;
 using UniRx;
-using General.View;
+using General.Views;
 
 namespace MainGameScene.View
 {

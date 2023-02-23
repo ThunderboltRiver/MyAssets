@@ -16,10 +16,10 @@ namespace General.Models
 
         public void ChangeCanvas(string canvasKey)
         {
-            currentCanvas.enabled = false;
             Canvas nextCanvas;
             if (nextCanvasDict.TryGetValue(canvasKey, out nextCanvas))
             {
+                currentCanvas.enabled = false;
                 nextCanvas.enabled = true;
                 currentCanvas = nextCanvas;
             }

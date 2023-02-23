@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace General.Model
+namespace General.Models
 {
     public class SceneNavigater : MonoBehaviour
     {

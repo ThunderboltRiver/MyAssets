@@ -22,7 +22,7 @@ public class TachableUI
             int targetResultsCount = _rayResults.Count(result => result.gameObject.GetInstanceID() == targetID && _rayResults.IndexOf(result) == 0);
             if (targetResultsCount > 0)
             {
-                Debug.Log(targetResultsCount);
+
                 targetFingers.Add(touch);
             }
         }

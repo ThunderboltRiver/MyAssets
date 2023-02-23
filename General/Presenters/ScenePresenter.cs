@@ -1,7 +1,7 @@
 using UnityEngine;
 using UniRx;
-using General.Model;
-using General.View;
+using General.Models;
+using General.Views;
 
 namespace General.Presenter
 {

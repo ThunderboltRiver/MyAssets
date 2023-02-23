@@ -1,4 +1,4 @@
-using General.Model;
+using General.Models;
 
 namespace GameOver.Model
 {

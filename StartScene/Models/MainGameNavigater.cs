@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using General.Model;
+using General.Models;
 
-namespace StartScene.Model
+namespace StartScene.Models
 {
     public class MainGameNavigater : SceneNavigater
     {
