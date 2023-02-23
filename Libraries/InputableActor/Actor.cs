@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SerializableClass;
 namespace InputableActor
 {
     public class Actor<TValue> : MonoBehaviour
@@ -56,7 +57,7 @@ namespace InputableActor
     /// </summary>
     public class Actor<TKey, TValue> : MonoBehaviour
     {
-        private Dictionary<TKey, InputHandler<TValue>> _inputHandlers = new();
+        [SerializeField] private SerializableDictionary<TKey, InputHandler<TValue>> _inputHandlers = new();
 
         /// <summary>
         /// 入力値を受け付けるメソッド
@@ -97,11 +98,15 @@ namespace InputableActor
                 Debug.Log($"Key:{key} || Handler:{_result}");
                 return;
             }
-            _inputHandlers[key] = inputHandler;
+            _inputHandlers.TryAdd(key, inputHandler);
+        }
+        public void Awake()
+        {
+            Destroy();
+            OnAwake();
         }
         public void Start()
         {
-            Destroy();
             OnStart();
         }
         public void Update()
@@ -138,10 +143,6 @@ namespace InputableActor
             _inputHandlers.Clear();
         }
 
-        public void LoadSetting<TSetting>(TKey key, string settingKey, TSetting setting)
-        {
-            GetInputHandler(key).LoadSetting(settingKey, setting);
-        }
         protected virtual void OnAwake() { }
         protected virtual void OnStart() { }
         protected virtual void OnUpdate() { }

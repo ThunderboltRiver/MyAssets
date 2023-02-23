@@ -64,8 +64,11 @@ namespace InputableActor
         protected virtual void OnLateUpdate() { }
         protected virtual void OnFixedUpdate() { }
 
-        public virtual void LoadSetting<TSetting>(string settingKey, TSetting setting) { }
-
+        public virtual void LoadSetting<TSettingKey, TSetting>(TSettingKey settingKey, TSetting setting) { }
+        public virtual TSetting GetSetting<TSettingKey, TSetting>(TSettingKey settingKey) where TSetting : new()
+        {
+            return new TSetting();
+        }
         public InputHandler()
         {
             OnAwake();

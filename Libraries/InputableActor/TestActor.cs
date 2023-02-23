@@ -1,4 +1,4 @@
-#define TEST_THIS_LIBRARY
+
 using System;
 using UnityEngine;
 
@@ -29,7 +29,7 @@ namespace InputableActor
     public class TestActor : Actor<int, float>
     {
         [SerializeField] TestHandler handler = new();
-        public void Start()
+        protected override void OnStart()
         {
             AddInputHandler(0, handler);
             LoadSetting(0, "message", "LoadSetting");

@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 
-namespace General.Models
+namespace SerializableClass
 {
     [Serializable]
     public class SerializableDictionary<TKey, TValue>
@@ -60,6 +58,13 @@ namespace General.Models
             };
             return false;
         }
+
+        public void Clear()
+        {
+            GetDict().Clear();
+            list.Clear();
+        }
+
     }
 
     /// <summary>

@@ -1,3 +1,5 @@
+using System;
+using System.Reflection.Emit;
 using UnityEngine;
 using InputableActor;
 
@@ -5,7 +7,7 @@ namespace MainGameScene.Model
 {
 
     [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
-    public class FirstPersonActor : Actor<int, Vector2>
+    public class FirstPersonActor : Actor<FirstPersonActor.AcceptableKeys, Vector2>
     {
         [SerializeField] private Walker _walker;
         [SerializeField] private FirstPersonCamera _fpsCamera;
@@ -16,17 +18,17 @@ namespace MainGameScene.Model
             MoveRigidbody,
             RotateCamera,
         }
-        void Awake()
-        {
-
-            //_fpsCamera = new(_cameraTransform, GetComponent<Rigidbody>().transform);
-
-        }
         protected override void OnStart()
         {
+            Debug.Log(nameof(AcceptableKeys.MoveRigidbody));
             _walker.AddComponents(GetComponent<Rigidbody>(), GetComponent<CapsuleCollider>());
-            AddInputHandler((int)AcceptableKeys.MoveRigidbody, _walker);
-            AddInputHandler((int)AcceptableKeys.RotateCamera, _fpsCamera);
+            AddInputHandler(AcceptableKeys.MoveRigidbody, _walker);
+            AddInputHandler(AcceptableKeys.RotateCamera, _fpsCamera);
+        }
+
+        public void SettingCameraSensitivity(float value)
+        {
+            _fpsCamera.CameraSensitivity = value;
         }
     }
 }

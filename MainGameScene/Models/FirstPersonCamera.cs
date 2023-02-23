@@ -1,6 +1,7 @@
 #define DEBUG
 using System;
 using UnityEngine;
+using SerializableClass;
 using InputableActor;
 
 namespace MainGameScene.Model
@@ -8,43 +9,52 @@ namespace MainGameScene.Model
     [Serializable]
     public class FirstPersonCamera : InputHandler<Vector2>
     {
-        [Serializable]
-        private class Setting
-        {
-            [SerializeField] float _cameraSensitivity;
-            [SerializeField] float _RotationVerticalAngleUp = -90.0f;
-            [SerializeField] float _RotationVerticalAngleDown = 90.0f;
-            public float CameraSensitivity => _cameraSensitivity;
-            public float RotationVerticalAngleUp => _RotationVerticalAngleUp + Mathf.Epsilon;
-            public float RotationVerticalAngleDown => _RotationVerticalAngleDown - Mathf.Epsilon;
-        }
+        const float MinCameraSensitivity = 0.0f;
+        const float MaxCameraSensitivity = 1.0f;
         [SerializeField] private Transform _cameraTransform;
         [SerializeField] private Transform _playerTransform;
-        [SerializeField] private Setting setting;
+        [Range(MinCameraSensitivity, MaxCameraSensitivity)][SerializeField] float _cameraSensitivity;
+        [SerializeField] float _RotationVerticalAngleUp = -90.0f;
+        [SerializeField] float _RotationVerticalAngleDown = 90.0f;
+        public float CameraSensitivity
+        {
+            get => _cameraSensitivity;
+            set
+            {
+                if (MinCameraSensitivity <= value && value <= MaxCameraSensitivity)
+                {
+                    _cameraSensitivity = value;
+                }
+            }
+        }
+        public float RotationVerticalAngleUp => _RotationVerticalAngleUp + Mathf.Epsilon;
+        public float RotationVerticalAngleDown => _RotationVerticalAngleDown - Mathf.Epsilon;
+
         private Vector2 inputedValue;
+
 
         protected override void OnAwake()
         {
             inputQueueMask = 1;
+
         }
         protected override void OnLateUpdate()
         {
             inputQueue.TryDequeue(out inputedValue);
             RotateCamera(inputedValue);
         }
-
         private void RotateCamera(Vector2 input)
         {
             Vector3 inputTransformRight = input.x * _playerTransform.right;
             Vector3 inputTransformUp = input.y * _cameraTransform.up;
-            float deltaAngleHorizontal = Mathf.Rad2Deg * Mathf.Atan(inputTransformRight.sqrMagnitude / _cameraTransform.forward.sqrMagnitude) * Time.deltaTime * setting.CameraSensitivity;
-            float deltaAngleVertical = Mathf.Rad2Deg * Mathf.Atan(inputTransformUp.sqrMagnitude / _cameraTransform.forward.sqrMagnitude) * Time.deltaTime * setting.CameraSensitivity;
+            float deltaAngleHorizontal = Mathf.Rad2Deg * Mathf.Atan(inputTransformRight.sqrMagnitude / _cameraTransform.forward.sqrMagnitude) * Time.deltaTime * CameraSensitivity;
+            float deltaAngleVertical = Mathf.Rad2Deg * Mathf.Atan(inputTransformUp.sqrMagnitude / _cameraTransform.forward.sqrMagnitude) * Time.deltaTime * CameraSensitivity;
             Quaternion horizontalRotation = Quaternion.AngleAxis(deltaAngleHorizontal, input.x * _playerTransform.up);
             Quaternion verticalRotation = Quaternion.AngleAxis(deltaAngleVertical, input.y * -_cameraTransform.right);
             //min <= currentVerticalRotate + rotateVerticalAngle <= max なら垂直方向にカメラを回転
             float afterAngle = NegativeAngle(_cameraTransform.rotation.eulerAngles.x) + NegativeAngle(verticalRotation.eulerAngles.x);
             //Debug.Log(afterAngle);
-            if (NegativeAngle(setting.RotationVerticalAngleDown) > afterAngle && afterAngle > NegativeAngle(setting.RotationVerticalAngleUp))
+            if (NegativeAngle(RotationVerticalAngleDown) > afterAngle && afterAngle > NegativeAngle(RotationVerticalAngleUp))
             {
                 _cameraTransform.rotation = verticalRotation * _cameraTransform.rotation;
             }
@@ -72,27 +82,6 @@ namespace MainGameScene.Model
             return Mathf.Floor(f);
         }
 
-        /// <summary>
-        /// 一人称視点のカメラの作成
-        /// </summary>
-        /// <param name="cameraTransform">回転するカメラ</param>
-        /// <param name="playerTransform">カメラが追従するプレイヤー</param>
-        // public FirstPersonCamera(Transform cameraTransform, Transform playerTransform, float sensitivity)
-        // {
-        //     _cameraTransform = cameraTransform;
-        //     _playerTransform = playerTransform;
-        //     _cameraSensitivity = sensitivity;
-        //     //視点用のカメラをplayerの子オブジェクトに指定する.
-        //     _cameraTransform.SetParent(_playerTransform);
-        // }
-        // public FirstPersonCamera(Transform cameraTransform, Transform playerTransform)
-        // {
-        //     _cameraTransform = cameraTransform;
-        //     _playerTransform = playerTransform;
-        //     _cameraSensitivity = 1.0f;
-        //     //視点用のカメラをplayerの子オブジェクトに指定する.
-        //     _cameraTransform.SetParent(_playerTransform);
-        // }
     }
 
 }

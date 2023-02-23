@@ -17,8 +17,8 @@ namespace MainGameScene.Presenter
         void Update()
         {
             //Debug.Log(_strokableArea.Publish());
-            _fpsActor.AcceptInput((int)FirstPersonActor.AcceptableKeys.MoveRigidbody, _moveController.moveDirection);
-            _fpsActor.AcceptInput((int)FirstPersonActor.AcceptableKeys.RotateCamera, _strokableArea.Publish());
+            _fpsActor.AcceptInput(FirstPersonActor.AcceptableKeys.MoveRigidbody, _moveController.moveDirection);
+            _fpsActor.AcceptInput(FirstPersonActor.AcceptableKeys.RotateCamera, _strokableArea.Publish());
             //_walker.AcceptInput(_moveController.moveDirection);
         }
 

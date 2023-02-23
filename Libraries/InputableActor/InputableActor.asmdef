@@ -1,12 +1,16 @@
 {
     "name": "InputableActor",
     "rootNamespace": "InputableActor",
-    "references": [],
+    "references": [
+        "GUID:1b63bf062c6d44e34a4387da069fe9be"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        ""
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

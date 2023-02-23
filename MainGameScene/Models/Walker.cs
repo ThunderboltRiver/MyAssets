@@ -7,18 +7,13 @@ namespace MainGameScene.Model
     public class Walker : InputHandler<Vector2>
     {
 
-        [Serializable]
-        private class Setting
-        {
-            [SerializeField] private float _speed;
-            [SerializeField] private float _maxAngle;
-
-            public float Speed => _speed;
-            public float MaxAngle => _maxAngle;
-        }
+        [SerializeField] private float _speed;
+        [SerializeField] private float _maxAngle;
         [SerializeField] private Rigidbody rigidbody;
+
+        public float Speed => _speed;
+        public float MaxAngle => _maxAngle;
         private SlopeJudger _slopeJudger;
-        [SerializeField] private Setting setting;
         protected Vector2 inputedAcceleration;
         public bool isGrounded { get => _slopeJudger.GetNormalVectorOnPlane() != null; }
 
@@ -53,11 +48,11 @@ namespace MainGameScene.Model
         {
 
         }
-        public override void LoadSetting<TSetting>(string settingKey, TSetting setting)
-        {
-            if (setting is nameof(rigidbody) && setting is Rigidbody _rigidbody) this.rigidbody = _rigidbody;
-            if (setting is "collider" && setting is CapsuleCollider _collider) this._slopeJudger = new(_collider);
-        }
+        // public override void LoadSetting<TSetting>(string settingKey, TSetting setting)
+        // {
+        //     if (setting is nameof(rigidbody) && setting is Rigidbody _rigidbody) this.rigidbody = _rigidbody;
+        //     if (setting is "collider" && setting is CapsuleCollider _collider) this._slopeJudger = new(_collider);
+        // }
         protected override void OnAwake()
         {
             inputQueueMask = 1;
@@ -89,10 +84,10 @@ namespace MainGameScene.Model
                 }
                 rigidbody.isKinematic = false;
                 // 接地している平面の角度が_maxAngleをこえていなければ移動処理を行う
-                if ((float)_slopeJudger.GetPlaneAngle() <= setting.MaxAngle)
+                if ((float)_slopeJudger.GetPlaneAngle() <= MaxAngle)
                 {
                     //rididbodyの移動
-                    rigidbody.AddForce(AccelerationOnPlane(inputedAcceleration, (Vector3)_slopeJudger.GetNormalVectorOnPlane(), setting.Speed)
+                    rigidbody.AddForce(AccelerationOnPlane(inputedAcceleration, (Vector3)_slopeJudger.GetNormalVectorOnPlane(), Speed)
                         - rigidbody.velocity / Time.fixedDeltaTime, ForceMode.Acceleration);
                 }
             }
