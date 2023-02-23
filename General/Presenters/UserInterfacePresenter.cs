@@ -11,13 +11,20 @@ namespace General.Presenter
         void Start()
         {
             UserInterfaceChanger userInterfaceChanger = UserInterfaceChanger.I;
-            _keySender.GetEventData()
+            _keySender.IsPointerUpInAreaNotTimeOut
             .Subscribe(pointerevent =>
             {
                 userInterfaceChanger.ChangeCanvas(_keySender.CanvasName);
             }
             )
             .AddTo(this);
+
+            _keySender.IsPointerUpAfterTimeOut
+            .Subscribe(pointerevent =>
+            {
+                Debug.Log("Charge Shot!");
+            }
+            ).AddTo(this);
         }
     }
 }
