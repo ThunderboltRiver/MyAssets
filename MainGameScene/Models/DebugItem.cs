@@ -2,7 +2,7 @@ using System;
 using ItemSearchSystem;
 using UnityEngine;
 
-namespace MainGameScene.Models
+namespace MainGameScene.Model
 {
 
     [Serializable]
@@ -17,12 +17,12 @@ namespace MainGameScene.Models
 
         public void OnSelect()
         {
-            Debug.Log("Selected This  DebugItem");
+            Debug.Log("Selected This DebugItem");
         }
 
         public void Use()
         {
-            Debug.Log("Selected This  Use");
+            Debug.Log("Called UseMethod in This DebugItem");
         }
     }
 
