@@ -1,0 +1,67 @@
+@startuml InventrySystemSequence
+
+boundary UnityGUI
+control TakerViewPresenter
+control InventryViewPresenter
+actor Maneger
+control Searcher
+control Taker
+entity ItemInventry
+entity GameWorld
+== 初期化 ==
+GameWorld --> GameObject : 複数保持する 
+Maneger --> Searcher :保持する
+Maneger --> Taker :保持する
+TakerViewPresenter --> UnityGUI : 保持する
+TakerViewPresenter --> Maneger : 保持する
+InventryViewPresenter --> UnityGUI :　保持する
+InventryViewPresenter --> ItemInventry :　保持する
+== ==
+Maneger -> Searcher : Searchメソッドの実行
+Searcher -> GameWorld : 検索
+alt Searchable なオブジェクトを検出したら
+    GameWorld -> Searcher : 結果の返却
+    Searcher -> GameObject : 検索時の処理を依頼
+    GameObject -> Searcher : 検索時の処理を完了
+    Searcher -> Maneger :  検索結果のIEnumerableを返却
+    Maneger -> Taker : 検索結果のIEnumerableの処理を依頼する
+    Taker -> Taker : 検索結果をITakableのみ,Takableスタックに追加
+    TakerViewPresenter -> Taker: Takableスタックの更新を受け取る
+    alt ITakable スタックが空でないなら
+        TakerViewPresenter -> UnityGUI : 「Take」の表示
+    end
+else 検出しなかったら
+    Searcher -> Maneger : ITakableスタックのクリアを依頼
+    Maneger -> Taker : ITakableスタックをクリアさせる
+    Taker -> Taker : スタッククリア
+end
+alt 「Take」が選択されたとき
+TakerViewPresenter -> UnityGUI: Takeが押されることを受け取る
+TakerViewPresenter -> Maneger : Take処理を依頼
+Maneger -> Taker : Take処理を依頼
+Taker -> GameObject : Take時の処理を依頼
+GameObject -> Taker : 処理の完了
+    alt GameObjectが登録可能なとき
+    Taker -> ItemInventry : 登録を試みる
+        alt 登録成功時
+        ItemInventry -> GameObject : 登録時の処理を依頼
+        GameObject -> ItemInventry : 登録時の処理の完了
+        ItemInventry -> Taker : 登録処理の完了
+        Taker -> Taker : オブジェクトをスタックから消す
+        InventryViewPresenter -> ItemInventry : インベントリの更新を受け取る
+        InventryViewPresenter -> UnityGUI : イベントリの状態を表示
+        else 失敗時
+        ItemInventry -> Taker : 登録失敗の通知
+        Taker -> Maneger : 登録失敗の通知
+        InventryViewPresenter -> Maneger : 登録失敗の通知を受け取る
+        InventryViewPresenter -> UnityGUI : 「登録失敗」を表示
+        end
+    end
+Taker -> Maneger : 処理の完了    
+end
+
+alt ITakableスタックが空になったら
+    TakerViewPresenter -> Taker : スタックが空になることを確認
+    TakerViewPresenter -> UnityGUI : Takeの非表示
+end
+@enduml

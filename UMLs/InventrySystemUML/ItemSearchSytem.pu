@@ -1,0 +1,60 @@
+@startuml InventrySystem
+
+class InventrySystemManeger<THolder>{
+    ~ {field} THolder _holder {get;}
+    + {field} ISearcher Searcher {get;}
+    + {field} ITaker Taker{get;}
+    + {field} IRegister Register{get;}
+    + {method} void Update()
+}
+
+interface ISearchable{
+    + {method} OnSearch()
+}
+
+interface ITakable{
+    + {method} OnTaken()
+}
+
+interface IRegistable{
+    + {field} int MaxRegistable{get;}
+
+    + {method} OnRegisterd()
+}
+
+abstract class ISearcher{
+    # {field} InventrySystemManeger _maneger
+    + {method} void Execute< TEnumerable<GameObject>>(out TEnumerable<GameObject> searchResults);
+    # {method} abstract void SearchInGameWorld()
+}
+
+abstract class ITaker{
+    # {field} InventrySystemManeger _maneger
+    # {field} Stack<ITakable> _currentTakables
+    ~ {method} void AddTakable(GameObject gameObject)
+    ~ {method} void ClearTakables()
+    + {method} void Execute()
+    ~ {method} virtual GameObject Take(){_currentTakables.Pop()}
+    ~ {method} abstract void AfterRegist()
+}
+
+abstract class Register{
+    # {field} InventrySystemManeger _maneger
+    # {field} Dictionary<IRegistable, int> _itemInventry
+    + {method} abstract bool TryRegist(IRegistable registable)
+    + {method} void Consume(IRegistable registable)
+    + {method} void Consume(IRegistable registable, int consumption)
+    + {method} int GetRegisteredCounts(IRegistable, registable)
+    + {method} IRegistable GetRegistable(int index)
+}
+
+class TakerViewPresenter
+class InventryViewPresenter
+ITaker --> ITakable
+ISearcher --> ISearchable
+Register --> IRegistable
+InventrySystemManeger --> ISearcher
+InventrySystemManeger --> ITaker
+InventrySystemManeger --> Register
+@enduml
+
