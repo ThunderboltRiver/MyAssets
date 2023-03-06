@@ -6,7 +6,7 @@ namespace ItemSearchSystem
     {
         public void OnSearch()
         {
-            Debug.Log("Searched This Item");
+            Debug.Log("This item was Searched");
         }
     }
 }

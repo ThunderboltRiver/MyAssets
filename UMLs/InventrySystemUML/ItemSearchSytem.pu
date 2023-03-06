@@ -22,24 +22,24 @@ interface IRegistable{
     + {method} OnRegisterd()
 }
 
-abstract class ISearcher{
-    # {field} InventrySystemManeger _maneger
+abstract class ISearcher<THolder>{
+    # {field} InventrySystemManeger<THolder> _maneger
     + {method} void Execute< TEnumerable<GameObject>>(out TEnumerable<GameObject> searchResults);
     # {method} abstract void SearchInGameWorld()
 }
 
-abstract class ITaker{
-    # {field} InventrySystemManeger _maneger
+abstract class ITaker<THolder>{
+    # {field} InventrySystemManeger<THolder> _maneger
     # {field} Stack<ITakable> _currentTakables
     ~ {method} void AddTakable(GameObject gameObject)
     ~ {method} void ClearTakables()
     + {method} void Execute()
     ~ {method} virtual GameObject Take(){_currentTakables.Pop()}
-    ~ {method} abstract void AfterRegist()
+    ~ {method} abstract void AfterRegist(GameObject gameObject)
 }
 
-abstract class Register{
-    # {field} InventrySystemManeger _maneger
+abstract class Register<THolder>{
+    # {field} InventrySystemManeger<THolder> _maneger
     # {field} Dictionary<IRegistable, int> _itemInventry
     + {method} abstract bool TryRegist(IRegistable registable)
     + {method} void Consume(IRegistable registable)

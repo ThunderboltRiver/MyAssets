@@ -28,7 +28,7 @@ namespace PlayModeTests
                 searchableItem.OnSearch();
             };
             yield return null;
-            LogAssert.Expect(LogType.Log, "Searched This Item");
+            LogAssert.Expect(LogType.Log, "This item was Searched");
         }
     }
 
