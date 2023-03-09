@@ -5,8 +5,14 @@ namespace ItemSearchSystem
 {
     public class Taker
     {
-        private Stack<ITakable> _takableStack = new();
-        public int _takableStackMask;
+        private readonly Stack<ITakable> _takableStack = new();
+
+        private int _takableStackMask;
+        public int TakableStackMask
+        {
+            get => _takableStackMask;
+            set => _takableStackMask = value > 0 ? value : 0;
+        }
 
         public bool TryPushTakable(GameObject gameObject)
         {
@@ -15,7 +21,7 @@ namespace ItemSearchSystem
 
         public bool TryPushTakable(ITakable takable)
         {
-            if (_takableStack.Count < _takableStackMask)
+            if (_takableStack.Count < TakableStackMask)
             {
                 _takableStack.Push(takable);
                 return true;

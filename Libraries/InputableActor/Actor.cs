@@ -1,7 +1,3 @@
-using System.Collections.Concurrent;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using SerializableClass;
 namespace InputableActor
