@@ -3,8 +3,8 @@ namespace ItemSearchSystem
 {
     public class Searcher
     {
-        private Vector3 origin = Vector3.up;
-        private float radius = 1.0f;
+        private Vector3 origin = Vector3.zero;
+        private float radius = 0.5f;
         private float maxDistance = 1.0f;
         private Vector3 direction = Vector3.forward;
 

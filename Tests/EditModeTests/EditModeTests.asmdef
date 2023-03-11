@@ -5,21 +5,23 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "MainGameScene",
-        "ItemSearchSystem"
+        "ItemSearchSystem",
+        "General"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
+    "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll",
-        ""
+        "NSubstitute.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
+        "UNITY_INCLUDE_TESTS",
+        "UNITY_EDITOR"
     ],
     "versionDefines": [],
     "noEngineReferences": false

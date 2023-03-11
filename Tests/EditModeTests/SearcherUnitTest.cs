@@ -1,45 +1,60 @@
 using ItemSearchSystem;
 using UnityEngine;
+using UnityEditor.SceneManagement;
 using NUnit.Framework;
-using UnityEngine.TestTools;
 
 namespace EditModeTests
 {
+    internal class SearchTestSpy : MonoBehaviour, ISearchable
+    {
+        public bool IsCalled { get; private set; } = false;
+
+        public void OnSearch()
+        {
+            IsCalled = true;
+        }
+
+    }
+
     public class SearcherUnitTest
     {
-        readonly Searcher searcher = new();
-        readonly GameObject targetObject = new();
+
+        Searcher searcher = new();
+        GameObject target;
+        SearchTestSpy searchTestSpy;
         /// <summary>
         /// テストシーンの作成
         /// </summary>
         [SetUp]
         public void Setup()
         {
-            SphereCollider collider = targetObject.AddComponent<SphereCollider>();
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
+            target = new();
+            target.transform.position = 2.0f * Vector3.forward;
+            SphereCollider collider = target.AddComponent<SphereCollider>();
             collider.center = Vector3.zero;
-            collider.radius = 1.0f;
-            targetObject.transform.position = 2.0f * Vector3.forward;
+            collider.radius = 0.5f;
+            searchTestSpy = target.AddComponent<SearchTestSpy>();
+
         }
 
         [Test]
-        public void SearcherがISearchableなGameObjectを発見できるか()
+        public void Searcher_Search_ISearchableなGameObjectを発見したらTrue()
         {
-            _ = targetObject.AddComponent<SearchableTestItem>();
-            Assert.True(searcher.Search(out GameObject gameObject));
-            Assert.True(gameObject.TryGetComponent(out ISearchable _));
+            Assert.That(searcher.Search(out GameObject gameObject) && gameObject.TryGetComponent(out ISearchable _), Is.True);
         }
         [Test]
-        public void ISearchableを発見するとOnSearchを実行するか()
+        public void Searcher_Search_ISearchableを発見するとOnSearchを実行する()
         {
-            _ = targetObject.AddComponent<SearchableTestItem>();
-            LogAssert.Expect(LogType.Log, "This item was Searched");
-            searcher.Search(out GameObject _);
+            Assert.That(searcher.Search(out GameObject _) && searchTestSpy.IsCalled, Is.True);
         }
 
         [Test]
-        public void ISearchableなGameObjectを返さないときもあるか()
+        public void Searcher_Search_ISearchableがなければFalse()
         {
-            Assert.False(searcher.Search(out GameObject _));
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
+            Assert.That(searcher.Search(out GameObject _), Is.False);
         }
+
     }
 }
