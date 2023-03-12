@@ -65,7 +65,7 @@ namespace EditModeTests
 
         public void OnRegist()
         {
-            IsOnSearchCalled = true;
+            IsOnRegistCalled = true;
         }
     }
 }

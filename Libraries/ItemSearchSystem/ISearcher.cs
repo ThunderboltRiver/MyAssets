@@ -3,14 +3,15 @@ namespace ItemSearchSystem
 {
     public class Searcher
     {
-        private Vector3 origin = Vector3.zero;
-        private float radius = 0.5f;
-        private float maxDistance = 1.0f;
-        private Vector3 direction = Vector3.forward;
+        public Transform Transform { get; }
+        public float Radius { get; }
+        public float MaxDistance { get; }
+
+        public Vector3 SearchDirection => Transform.forward;
 
         public bool Search(out GameObject result)
         {
-            if (Physics.SphereCast(origin, radius, direction, out RaycastHit hitInfo, maxDistance))
+            if (Physics.SphereCast(Transform.position, Radius, SearchDirection, out RaycastHit hitInfo, MaxDistance))
             {
                 GameObject gameObject = hitInfo.collider.gameObject;
                 if (gameObject.TryGetComponent(out ISearchable searchable))
@@ -22,6 +23,18 @@ namespace ItemSearchSystem
             }
             result = null;
             return false;
+        }
+        public Searcher()
+        {
+            Transform = new GameObject().transform;
+            Radius = 0.5f;
+            MaxDistance = 1.0f;
+        }
+        public Searcher(Transform transform, float radius, float maxDistance)
+        {
+            Transform = transform;
+            Radius = radius;
+            MaxDistance = maxDistance;
         }
     }
 }
