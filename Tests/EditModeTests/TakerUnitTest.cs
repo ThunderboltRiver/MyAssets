@@ -3,6 +3,7 @@ using NUnit.Framework;
 using ItemSearchSystem;
 using NSubstitute;
 using UnityEditor.SceneManagement;
+using NUnit.Framework.Internal;
 
 namespace EditModeTests
 {
@@ -62,5 +63,13 @@ namespace EditModeTests
             Assert.That(taker.TakableStackMask, Is.GreaterThanOrEqualTo(0));
         }
 
+        [Test]
+        public void Taker_ClearTakable_格納されたTakableをクリアできる()
+        {
+            Taker taker = new() { TakableStackMask = 1 };
+            taker.TryPushTakable(takableObject);
+            taker.ClearTakable();
+            Assert.That(taker.TakableCount, Is.EqualTo(0));
+        }
     }
 }

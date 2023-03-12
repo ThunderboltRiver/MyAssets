@@ -25,14 +25,17 @@ namespace EditModeTests
         [Test]
         public void Searcher_SearchがTrueのときTakableStackMaskを超えてなければTaker_TryPushTakableがTrue()
         {
-            Searcher searcher = new();
+            GameObject player = new();
+            Searcher searcher = new(player.transform, 0.5f, 1.0f);
             Taker taker = new() { TakableStackMask = 1 };
             Assert.That(searcher.Search(out GameObject gameObject) && taker.TryPushTakable(gameObject), Is.True);
         }
         [Test]
         public void Searcher_SearchがTrueのときTakableStackMaskを超えるとTaker_TryPushTakableができない()
         {
-            Searcher searcher = new();
+
+            GameObject player = new();
+            Searcher searcher = new(player.transform, 0.5f, 1.0f);
             Taker taker = new() { TakableStackMask = 1 };
             Assert.That(searcher.Search(out GameObject gameObject) && taker.TryPushTakable(gameObject) && !taker.TryPushTakable(gameObject), Is.True);
         }

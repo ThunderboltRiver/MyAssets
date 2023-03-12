@@ -13,6 +13,7 @@ namespace ItemSearchSystem
             set => _takableStackMask = value > 0 ? value : 0;
         }
 
+        public int TakableCount => _takableStack.Count;
         public bool TryPushTakable(GameObject gameObject)
         {
             return gameObject.TryGetComponent(out ITakable takable) && TryPushTakable(takable);
@@ -48,6 +49,11 @@ namespace ItemSearchSystem
         public bool HasTakableObject(ITakable takable)
         {
             return _takableStack.Contains(takable);
+        }
+
+        public void ClearTakable()
+        {
+            _takableStack.Clear();
         }
     }
 }
