@@ -1,51 +1,62 @@
 using UnityEngine;
 using NUnit.Framework;
 using ItemSearchSystem;
-using UnityEngine.TestTools;
+using NSubstitute;
+using UnityEditor.SceneManagement;
 
 namespace EditModeTests
 {
+    internal class TakableTestSpy : MonoBehaviour, ITakable
+    {
+        public bool IsCalled { get; private set; }
+        public void OnTaken()
+        {
+            IsCalled = true;
+        }
+
+    }
     public class TakerUnitTest
     {
-        readonly GameObject takableObject = new();
-        ITakable takable;
+        GameObject takableObject;
+        TakableTestSpy takable;
         [SetUp]
         public void Setup()
         {
-            takable = takableObject.AddComponent<TakableMock>();
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
+            takableObject = new();
+            takable = takableObject.AddComponent<TakableTestSpy>();
 
         }
 
-        [Test]
-        public void Takeableオブジェクトを一時的に格納できるか()
+        [TestCase(2)]
+        public void Taker_TryPushTakable_TakableStackMask以内の個数のITakeableオブジェクトを格納できる(int takableStackMask)
         {
-            Taker taker = new();
-            taker.TakableStackMask = 1;
-            Assert.True(taker.TryPushTakable(takableObject));
+            Taker taker = new() { TakableStackMask = takableStackMask };
+
+            Assert.That(taker.TryPushTakable(takableObject)
+                && taker.TryPushTakable(Substitute.For<ITakable>())
+                && !taker.TryPushTakable(Substitute.For<ITakable>())
+                , Is.True);
         }
 
         [Test]
-        public void 格納されたTakableオブジェクトを実行できる()
+        public void Taker_Take_格納したITakableオブジェクトのOnTakenを実行している()
         {
-            Taker taker = new();
-            taker.TakableStackMask = 1;
+            Taker taker = new() { TakableStackMask = 1 };
             taker.TryPushTakable(takable);
-            LogAssert.Expect(LogType.Log, "TakableMock was Taken");
-            taker.Take();
+            Assert.That(taker.Take(out object _) && takable.IsCalled, Is.True);
         }
 
         [Test]
-        public void Take実行後にTakableオブジェクトが開放されているか()
+        public void Taker_Take_実行後にITakableオブジェクトを所持していない()
         {
-            Taker taker = new();
-            taker.TakableStackMask = 1;
+            Taker taker = new() { TakableStackMask = 1 };
             taker.TryPushTakable(takable);
-            taker.Take();
-            Assert.False(taker.HasTakableObject(takableObject));
+            Assert.That(taker.Take(out object _) && !taker.HasTakableObject(takableObject), Is.True);
         }
 
         [TestCase(-1)]
-        public void TakableStackMask_負の値は取らないか(int testCase)
+        public void Taker_TakableStackMask_負の値は取らないか(int testCase)
         {
             Taker taker = new() { TakableStackMask = testCase };
             Assert.That(taker.TakableStackMask, Is.GreaterThanOrEqualTo(0));

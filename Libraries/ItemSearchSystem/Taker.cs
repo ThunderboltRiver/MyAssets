@@ -6,7 +6,6 @@ namespace ItemSearchSystem
     public class Taker
     {
         private readonly Stack<ITakable> _takableStack = new();
-
         private int _takableStackMask;
         public int TakableStackMask
         {
@@ -29,12 +28,16 @@ namespace ItemSearchSystem
             return false;
         }
 
-        public void Take()
+        public bool Take(out object obj)
         {
             if (_takableStack.TryPop(out ITakable takable))
             {
                 takable.OnTaken();
+                obj = takable;
+                return true;
             }
+            obj = null;
+            return false;
         }
 
         public bool HasTakableObject(GameObject gameObject)

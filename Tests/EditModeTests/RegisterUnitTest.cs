@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using ItemSearchSystem;
 using NUnit.Framework;
+using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.TestTools;
+using NSubstitute;
 
 namespace EditModeTests
 {
@@ -12,6 +12,7 @@ namespace EditModeTests
         [SetUp]
         public void Setup()
         {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
 
         }
         [Test]
@@ -24,23 +25,21 @@ namespace EditModeTests
         }
 
         [Test]
-        public void Register_TryRegist_RegistableMockを登録できる()
+        public void Register_TryRegist_IRegistableオブジェクトなら登録可能でそれ以外は不可()
         {
             Register register = new();
-            IRegistable registable = new RegistableMock();
-            Assert.That(register.TryRegist(registable), Is.True);
+            object registable = SubstituteIRegistalbe(1);
+            object unRegistable = new();
+            Assert.That(register.TryRegist(registable) && !register.TryRegist(unRegistable), Is.True);
         }
 
         [Test]
-        public void Register_TryRegist__RegistableMockの所持可能数を超えるときはRegistableMockの登録はできない()
+        public void Register_TryRegist_IRegistableのMaxRegistableを超えるときは同じIRegistableオブジェクトの登録はできない()
         {
             Register register = new();
-            for (int i = 0; i < 2; i++)
-            {
-                register.TryRegist(new RegistableMock());
-
-            }
-            Assert.That(register.TryRegist(new RegistableMock()), Is.False);
+            IRegistable registable = Substitute.For<IRegistable>();
+            registable.MaxRegistalbe.Returns(2);
+            Assert.That(register.TryRegist(registable) && register.TryRegist(registable) && !register.TryRegist(registable), Is.True);
         }
 
         [Test]
@@ -52,52 +51,36 @@ namespace EditModeTests
         }
 
         [Test]
-        public void Register_TryRegist_RegistableMockの登録完了時にRegistableMockがDebugLogに出力される()
+        public void Register_TryRegist_RegistableMockの登録完了時にIRegistable_OnRegsitが呼ばれる()
         {
             Register register = new();
-            IRegistable registable = new RegistableMock();
-            LogAssert.Expect(LogType.Log, "RegistableMock");
-            register.TryRegist(registable);
+            IRegistable registable = SubstituteIRegistalbe(1);
+            bool isCalled = false;
+            registable.When(x => x.OnRegist()).Do(_ => isCalled = true);
+            Assert.That(register.TryRegist(registable) && isCalled, Is.True);
         }
 
         [Test]
         public void Register_GetAllRegistered_すべての登録済みデータを取得する()
         {
             Register register = new();
-            IRegistable registable1 = new RegistableMock();
+            IRegistable registable1 = SubstituteIRegistalbe(1);
+            IRegistable registable2 = SubstituteIRegistalbe(1);
             register.TryRegist(registable1);
-            IRegistable registable2 = Factory.CreateComponent<RegistableMonoBehaviourMock>();
             register.TryRegist(registable2);
             IEnumerable<(IRegistable, int)> expect = new List<(IRegistable, int)>() { (registable1, 1), (registable2, 1) };
             Assert.That(register.GetAllRegistered(), Is.EqualTo(expect));
         }
 
+        private IRegistable SubstituteIRegistalbe(int maxRegistalbe)
+        {
+            IRegistable registable = Substitute.For<IRegistable>();
+            registable.MaxRegistalbe.Returns(maxRegistalbe);
+            return registable;
+        }
+
     }
-
-    class RegistableMock : IRegistable
-    {
-        public int MaxRegistalbe => 2;
-        public void OnRegist()
-        {
-            Debug.Log("RegistableMock");
-        }
-
-        public override string ToString()
-        {
-            return typeof(RegistableMock).ToString();
-        }
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is RegistableMock;
-        }
-    }
-
-    class RegistableMonoBehaviourMock : MonoBehaviour, IRegistable
+    internal class RegistableMonoBehaviourMock : MonoBehaviour, IRegistable
     {
         public int MaxRegistalbe => 1;
         public void OnRegist()

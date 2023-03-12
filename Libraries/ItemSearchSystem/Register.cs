@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace ItemSearchSystem
@@ -19,10 +20,14 @@ namespace ItemSearchSystem
             return false;
         }
 
+        public bool TryRegist(object obj)
+        {
+            return (obj is IRegistable registable) && TryRegist(registable);
+        }
+
         public bool TryRegist(GameObject gameObject)
         {
             return gameObject.TryGetComponent(out IRegistable registable) && TryRegist(registable);
-
         }
 
         public IEnumerable<(IRegistable, int)> GetAllRegistered()
