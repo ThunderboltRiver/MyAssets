@@ -1,11 +1,14 @@
 using System.Collections.Generic;
+using System.Linq;
+using ObservableCollections;
 using UnityEngine;
 
 namespace ItemSearchSystem
 {
     public class Taker
     {
-        private readonly Stack<ITakable> _takableStack = new();
+        public IObservableCollection<ITakable> WaitingTakablesAsObservableCollection => _takableStack;
+        private readonly ObservableStack<ITakable> _takableStack = new();
         private int _takableStackMask;
         public int TakableStackMask
         {

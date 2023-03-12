@@ -1,7 +1,9 @@
 {
     "name": "ItemSearchSystem",
     "rootNamespace": "ItemSearchSystem",
-    "references": [],
+    "references": [
+        "GUID:a25f8e99c4faa4b4a8c38f41a406f5d3"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

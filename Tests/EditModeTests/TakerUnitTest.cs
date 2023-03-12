@@ -1,4 +1,7 @@
 using UnityEngine;
+using ObservableCollections;
+using System;
+using System.Collections.Specialized;
 using NUnit.Framework;
 using ItemSearchSystem;
 using NSubstitute;
@@ -70,6 +73,23 @@ namespace EditModeTests
             taker.TryPushTakable(takableObject);
             taker.ClearTakable();
             Assert.That(taker.TakableCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Taker_TakableStackの増加の通知を取得できる()
+        {
+            Taker taker = new() { TakableStackMask = 1 };
+            bool IsPushedTakable = false;
+            taker.WaitingTakablesAsObservableCollection.CollectionChanged += (in NotifyCollectionChangedEventArgs<ITakable> args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Add)
+                {
+                    IsPushedTakable = true;
+                    return;
+                }
+            };
+            taker.TryPushTakable(takableObject);
+            Assert.That(IsPushedTakable, Is.True);
         }
     }
 }

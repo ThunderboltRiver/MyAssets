@@ -1,6 +1,6 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
+using ObservableCollections;
+using System;
 namespace ItemSearchSystem
 {
     public class ItemSearchSystemManager
@@ -8,6 +8,8 @@ namespace ItemSearchSystem
         private Searcher _searcher;
         private Taker _taker;
         private Register _register;
+        public IObservableCollection<ITakable> WaitingTakablesAsObservableCollection => _taker.WaitingTakablesAsObservableCollection;
+
         public ItemSearchSystemManager(Searcher searcher, Taker taker, Register register)
         {
             _searcher = searcher;
@@ -17,12 +19,19 @@ namespace ItemSearchSystem
 
         public bool SearchAndTryPushTakable()
         {
-            return _searcher.Search(out GameObject gameObject) && _taker.TryPushTakable(gameObject);
+            if (_searcher.Search(out GameObject gameObject))
+            {
+                return _taker.TryPushTakable(gameObject);
+            }
+            _taker.ClearTakable();
+            return false;
         }
-
         public bool TakeAndTryRegist()
         {
             return _taker.Take(out object obj) && _register.TryRegist(obj);
         }
+
+
     }
+
 }

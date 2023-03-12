@@ -1,7 +1,8 @@
 using NUnit.Framework;
 using UnityEngine;
-using NSubstitute;
 using ItemSearchSystem;
+using ObservableCollections;
+using System.Collections.Specialized;
 using UnityEditor.SceneManagement;
 
 namespace EditModeTests
@@ -43,6 +44,43 @@ namespace EditModeTests
             ItemSearchSystemManager manager = new(searcher, taker, register);
             manager.SearchAndTryPushTakable();
             Assert.That(manager.TakeAndTryRegist(), Is.True);
+        }
+
+        [Test]
+        public void ItemSearchSystemManager_SearchAndTryPushTakable_何も検索していないときはTaker_Takeができない()
+        {
+            _ = target.AddComponent<STRTestSpy>();
+            GameObject player = new();
+            Searcher searcher = new(player.transform, 0.5f, 1.0f);
+            Taker taker = new() { TakableStackMask = 1 };
+            Register register = new();
+            ItemSearchSystemManager manager = new(searcher, taker, register);
+            manager.SearchAndTryPushTakable();
+            player.transform.Rotate(60 * Vector3.up);
+            manager.SearchAndTryPushTakable();
+            Assert.That(taker.Take(out object _), Is.False);
+        }
+
+        [Test]
+        public void ItemSearchSystemManager_WaitingTakablesAsObservableCollectionの増大が通知される()
+        {
+            _ = target.AddComponent<STRTestSpy>();
+            GameObject player = new();
+            Searcher searcher = new(player.transform, 0.5f, 1.0f);
+            Taker taker = new() { TakableStackMask = 1 };
+            Register register = new();
+            ItemSearchSystemManager manager = new(searcher, taker, register);
+            bool IsPushedTakable = false;
+            manager.WaitingTakablesAsObservableCollection.CollectionChanged += (in NotifyCollectionChangedEventArgs<ITakable> args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Add)
+                {
+                    IsPushedTakable = true;
+                    return;
+                }
+            };
+            manager.SearchAndTryPushTakable();
+            Assert.That(IsPushedTakable, Is.True);
         }
 
     }

@@ -6,7 +6,8 @@
         "UnityEditor.TestRunner",
         "MainGameScene",
         "ItemSearchSystem",
-        "General"
+        "General",
+        "ObservableCollections"
     ],
     "includePlatforms": [
         "Editor"
