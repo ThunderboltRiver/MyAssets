@@ -1,6 +1,5 @@
 using UnityEngine;
 using ObservableCollections;
-using System;
 using System.Collections.Specialized;
 using NUnit.Framework;
 using ItemSearchSystem;

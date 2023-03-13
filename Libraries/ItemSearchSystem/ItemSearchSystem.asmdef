@@ -2,7 +2,8 @@
     "name": "ItemSearchSystem",
     "rootNamespace": "ItemSearchSystem",
     "references": [
-        "GUID:a25f8e99c4faa4b4a8c38f41a406f5d3"
+        "GUID:a25f8e99c4faa4b4a8c38f41a406f5d3",
+        "GUID:560b04d1a97f54a4e82edc0cbbb69285"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

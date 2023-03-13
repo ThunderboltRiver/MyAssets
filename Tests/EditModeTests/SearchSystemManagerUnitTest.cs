@@ -4,6 +4,8 @@ using ItemSearchSystem;
 using ObservableCollections;
 using System.Collections.Specialized;
 using UnityEditor.SceneManagement;
+using System.Runtime.InteropServices;
+using UniRx;
 
 namespace EditModeTests
 {
@@ -62,7 +64,7 @@ namespace EditModeTests
         }
 
         [Test]
-        public void ItemSearchSystemManager_WaitingTakablesAsObservableCollectionの増大が通知される()
+        public void ItemSearchSystemManager_WaitingTakablesChangedAsObservable_待機中のITakableのコレクションの増大が通知される()
         {
             _ = target.AddComponent<STRTestSpy>();
             GameObject player = new();
@@ -71,17 +73,20 @@ namespace EditModeTests
             Register register = new();
             ItemSearchSystemManager manager = new(searcher, taker, register);
             bool IsPushedTakable = false;
-            manager.WaitingTakablesAsObservableCollection.CollectionChanged += (in NotifyCollectionChangedEventArgs<ITakable> args) =>
-            {
-                if (args.Action == NotifyCollectionChangedAction.Add)
+            // manager.WaitingTakablesChangedAsObservable.Subscribe(
+            //     args =>
+            //     {
+            //         IsPushedTakable = args.Action == NotifyCollectionChangedAction.Add;
+            //     }
+            // ).AddTo(player);
+            manager.WaitingTakablesAddAsObservable
+                .Subscribe(_ =>
                 {
                     IsPushedTakable = true;
-                    return;
-                }
-            };
+                })
+                .AddTo(player);
             manager.SearchAndTryPushTakable();
             Assert.That(IsPushedTakable, Is.True);
         }
-
     }
 }

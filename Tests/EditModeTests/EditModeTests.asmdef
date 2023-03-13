@@ -7,7 +7,8 @@
         "MainGameScene",
         "ItemSearchSystem",
         "General",
-        "ObservableCollections"
+        "ObservableCollections",
+        "UniRx"
     ],
     "includePlatforms": [
         "Editor"
