@@ -73,18 +73,11 @@ namespace EditModeTests
             Register register = new();
             ItemSearchSystemManager manager = new(searcher, taker, register);
             bool IsPushedTakable = false;
-            // manager.WaitingTakablesChangedAsObservable.Subscribe(
-            //     args =>
-            //     {
-            //         IsPushedTakable = args.Action == NotifyCollectionChangedAction.Add;
-            //     }
-            // ).AddTo(player);
-            manager.WaitingTakablesAddAsObservable
-                .Subscribe(_ =>
-                {
-                    IsPushedTakable = true;
-                })
-                .AddTo(player);
+            manager.WaitingTakablesAsObservableCollection.CreateView(m =>
+            {
+                IsPushedTakable = true;
+                return new GameObject();
+            });
             manager.SearchAndTryPushTakable();
             Assert.That(IsPushedTakable, Is.True);
         }

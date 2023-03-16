@@ -14,21 +14,11 @@ namespace ItemSearchSystem
         private Register _register;
         public IObservableCollection<ITakable> WaitingTakablesAsObservableCollection => _taker.WaitingTakablesAsObservableCollection;
 
-        private Subject<NotifyCollectionChangedAction> _watingTakablesAddAsObservable = new();
-        public IObservable<NotifyCollectionChangedAction> WaitingTakablesAddAsObservable => _watingTakablesAddAsObservable;
-
         public ItemSearchSystemManager(Searcher searcher, Taker taker, Register register)
         {
             _searcher = searcher;
             _taker = taker;
             _register = register;
-            _taker.WaitingTakablesAsObservableCollection.CollectionChanged += (in NotifyCollectionChangedEventArgs<ITakable> args) =>
-            {
-                if (args.Action == NotifyCollectionChangedAction.Add)
-                {
-                    _watingTakablesAddAsObservable.OnNext(args.Action);
-                }
-            };
         }
 
         public bool SearchAndTryPushTakable()
