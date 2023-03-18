@@ -10,26 +10,36 @@ namespace PlayModeTests
 {
     public class TakableAddPresenterUnitTest
     {
+        Taker taker;
+        GameObject view;
         [SetUp]
         public void Setup()
         {
-            var scene = SceneManager.CreateScene("New Scene");
-            SceneManager.SetActiveScene(scene);
+            GameObject presenter = new();
+            view = new();
+            view.SetActive(false);
+            taker = new() { TakableStackMask = 1 };
+            var takableAddPresenter = presenter.AddComponent<TakableAddPresenter>();
+            takableAddPresenter.ChangeTaker(taker);
+            takableAddPresenter.ChangeView(view);
+
         }
 
         [UnityTest]
         public IEnumerator TakableAddPresenter_CreateView_takables変更時に対応のViewが作成されるか()
         {
-            GameObject presenter = new();
-            GameObject view = new();
-            view.SetActive(false);
-            Taker taker = new() { TakableStackMask = 1 };
-            var takableAddPresenter = presenter.AddComponent<TakableAddPresenter>();
-            takableAddPresenter.ChangeTaker(taker);
-            takableAddPresenter.ChangeView(view);
-            yield return null;
             taker.TryPushTakable(new GameObject().AddComponent<TakableTestSpy>());
+            yield return null;
             Assert.That(view.activeSelf, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator TakableAddPresenter_Take成功後にViewが非表示になるか()
+        {
+            taker.TryPushTakable(new GameObject().AddComponent<TakableTestSpy>());
+            yield return null;
+            taker.Take(out _);
+            Assert.That(view.activeSelf, Is.False);
         }
     }
     internal class TakableTestSpy : MonoBehaviour, ITakable

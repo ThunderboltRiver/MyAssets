@@ -1,4 +1,5 @@
-using System.Runtime.CompilerServices;
+using System.Collections.Specialized;
+using ObservableCollections;
 using UnityEngine;
 namespace ItemSearchSystem
 {
@@ -22,6 +23,14 @@ namespace ItemSearchSystem
                 view.SetActive(true);
                 return view.transform;
             });
+
+            taker.WaitingTakablesAsObservableCollection.CollectionChanged += (in NotifyCollectionChangedEventArgs<ITakable> args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Remove)
+                {
+                    view.SetActive(false);
+                }
+            };
         }
     }
 }
