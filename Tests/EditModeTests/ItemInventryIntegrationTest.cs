@@ -41,6 +41,22 @@ namespace EditModeTests
         }
 
         [Test]
+        public void Taker_TryPushTakable_WattingTakables内に同じオブジェクトがある場合は追加されない()
+        {
+
+            GameObject player = new();
+            Searcher searcher = new(player.transform, 0.5f, 1.0f);
+            Taker taker = new() { TakableStackMask = 2 };
+            searcher.Search(out GameObject gameObject1);
+            taker.TryPushTakable(gameObject1);
+            searcher.Search(out GameObject gameObject2);
+            taker.TryPushTakable(gameObject2);
+            Assert.That(taker.WaitingTakablesAsObservableCollection.Count, Is.EqualTo(1));
+        }
+
+
+
+        [Test]
         public void Taker_TakeしたオブジェクトがIRegistableならRegister_TryRegistを行う()
         {
             Taker taker = new() { TakableStackMask = 1 };
@@ -61,7 +77,7 @@ namespace EditModeTests
             IsOnSearchCalled = true;
         }
 
-        public void OnTaken()
+        public void OnTaken(Vector3 takeDirection)
         {
             IsOnTakenCalled = true;
         }

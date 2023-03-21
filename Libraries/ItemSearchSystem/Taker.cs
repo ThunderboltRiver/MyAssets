@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using ObservableCollections;
 using UnityEngine;
@@ -24,7 +23,7 @@ namespace ItemSearchSystem
 
         public bool TryPushTakable(ITakable takable)
         {
-            if (_takableStack.Count < TakableStackMask)
+            if (_takableStack.Count < TakableStackMask && !_takableStack.Contains(takable))
             {
                 _takableStack.Push(takable);
                 return true;
@@ -32,16 +31,21 @@ namespace ItemSearchSystem
             return false;
         }
 
-        public bool Take(out object obj)
+        public bool Take(Vector3 takeDirection, out object obj)
         {
             if (_takableStack.TryPop(out ITakable takable))
             {
-                takable.OnTaken();
+                takable.OnTaken(takeDirection);
                 obj = takable;
                 return true;
             }
             obj = null;
             return false;
+
+        }
+        public bool Take(out object obj)
+        {
+            return Take(Vector3.zero, out obj);
         }
 
         public bool HasTakableObject(GameObject gameObject)

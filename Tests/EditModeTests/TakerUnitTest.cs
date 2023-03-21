@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using ObservableCollections;
 using System.Collections.Specialized;
@@ -6,13 +7,14 @@ using ItemSearchSystem;
 using NSubstitute;
 using UnityEditor.SceneManagement;
 using NUnit.Framework.Internal;
+using NSubstitute.ExceptionExtensions;
 
 namespace EditModeTests
 {
     internal class TakableTestSpy : MonoBehaviour, ITakable
     {
         public bool IsCalled { get; private set; }
-        public void OnTaken()
+        public void OnTaken(Vector3 takeDirection)
         {
             IsCalled = true;
         }
@@ -90,5 +92,12 @@ namespace EditModeTests
             taker.TryPushTakable(takableObject);
             Assert.That(IsPushedTakable, Is.True);
         }
+        [Test]
+        public void Taker_Take_引数としてTakeするVector3型の方向を指定できる()
+        {
+            Taker taker = new() { TakableStackMask = 1 };
+            Assert.That(() => taker.Take(Vector3.forward, out _), Throws.Nothing);
+        }
+
     }
 }

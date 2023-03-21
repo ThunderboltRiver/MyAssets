@@ -45,7 +45,7 @@ namespace PlayModeTests
     internal class TakableTestSpy : MonoBehaviour, ITakable
     {
         public bool IsCalled { get; private set; }
-        public void OnTaken()
+        public void OnTaken(Vector3 takeDirection)
         {
             IsCalled = true;
         }
