@@ -1,9 +1,5 @@
 using UnityEngine;
 using ObservableCollections;
-using System.Collections.Specialized;
-using System;
-using UniRx;
-using System.Collections.Concurrent;
 
 namespace ItemSearchSystem
 {
@@ -21,7 +17,7 @@ namespace ItemSearchSystem
             _register = register;
         }
 
-        public bool SearchAndTryPushTakable()
+        public bool UpdateWaitingTakables()
         {
             if (_searcher.Search(out GameObject gameObject))
             {
@@ -30,11 +26,10 @@ namespace ItemSearchSystem
             _taker.ClearTakable();
             return false;
         }
-        public bool TakeAndTryRegist()
+        public bool TryTakeAndRegist()
         {
             return _taker.Take(out object obj) && _register.TryRegist(obj);
         }
-
 
     }
 

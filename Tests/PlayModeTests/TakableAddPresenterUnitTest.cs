@@ -4,7 +4,6 @@ using NUnit.Framework;
 using UnityEngine;
 using ItemSearchSystem;
 using UnityEngine.TestTools;
-using UnityEngine.SceneManagement;
 
 namespace PlayModeTests
 {

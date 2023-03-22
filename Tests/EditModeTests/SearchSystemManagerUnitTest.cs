@@ -1,11 +1,8 @@
 using NUnit.Framework;
 using UnityEngine;
 using ItemSearchSystem;
-using ObservableCollections;
-using System.Collections.Specialized;
 using UnityEditor.SceneManagement;
-using System.Runtime.InteropServices;
-using UniRx;
+
 
 namespace EditModeTests
 {
@@ -24,7 +21,7 @@ namespace EditModeTests
         }
 
         [Test]
-        public void ItemSearchSystemManager_SearchAndTryPushTakable_ISearchableかつITakableならTrue()
+        public void ItemSearchSystemManager_UpdateWaitingTakables_ISearchableかつITakableならTrue()
         {
             STRTestSpy testSpy = target.AddComponent<STRTestSpy>();
             GameObject player = new();
@@ -32,7 +29,7 @@ namespace EditModeTests
             Taker taker = new() { TakableStackMask = 1 };
             Register register = new();
             ItemSearchSystemManager manager = new(searcher, taker, register);
-            Assert.That(manager.SearchAndTryPushTakable(), Is.True);
+            Assert.That(manager.UpdateWaitingTakables(), Is.True);
         }
 
         [Test]
@@ -44,8 +41,8 @@ namespace EditModeTests
             Taker taker = new() { TakableStackMask = 1 };
             Register register = new();
             ItemSearchSystemManager manager = new(searcher, taker, register);
-            manager.SearchAndTryPushTakable();
-            Assert.That(manager.TakeAndTryRegist(), Is.True);
+            manager.UpdateWaitingTakables();
+            Assert.That(manager.TryTakeAndRegist(), Is.True);
         }
 
         [Test]
@@ -57,9 +54,9 @@ namespace EditModeTests
             Taker taker = new() { TakableStackMask = 1 };
             Register register = new();
             ItemSearchSystemManager manager = new(searcher, taker, register);
-            manager.SearchAndTryPushTakable();
+            manager.UpdateWaitingTakables();
             player.transform.Rotate(60 * Vector3.up);
-            manager.SearchAndTryPushTakable();
+            manager.UpdateWaitingTakables();
             Assert.That(taker.Take(out object _), Is.False);
         }
 
@@ -78,7 +75,7 @@ namespace EditModeTests
                 IsPushedTakable = true;
                 return new GameObject();
             });
-            manager.SearchAndTryPushTakable();
+            manager.UpdateWaitingTakables();
             Assert.That(IsPushedTakable, Is.True);
         }
     }

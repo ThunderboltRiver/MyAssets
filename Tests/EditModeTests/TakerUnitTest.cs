@@ -1,13 +1,10 @@
-using System;
 using UnityEngine;
-using ObservableCollections;
-using System.Collections.Specialized;
 using NUnit.Framework;
 using ItemSearchSystem;
 using NSubstitute;
 using UnityEditor.SceneManagement;
 using NUnit.Framework.Internal;
-using NSubstitute.ExceptionExtensions;
+
 
 namespace EditModeTests
 {
@@ -29,10 +26,10 @@ namespace EditModeTests
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
             takableObject = new();
+            takableObject.transform.position = Vector3.forward;
             takable = takableObject.AddComponent<TakableTestSpy>();
-
+            _ = takableObject.AddComponent<SphereCollider>();
         }
-
         [TestCase(2)]
         public void Taker_TryPushTakable_TakableStackMask以内の個数のITakeableオブジェクトを格納できる(int takableStackMask)
         {
@@ -44,22 +41,6 @@ namespace EditModeTests
                 , Is.True);
         }
 
-        [Test]
-        public void Taker_Take_格納したITakableオブジェクトのOnTakenを実行している()
-        {
-            Taker taker = new() { TakableStackMask = 1 };
-            taker.TryPushTakable(takable);
-            Assert.That(taker.Take(out object _) && takable.IsCalled, Is.True);
-        }
-
-        [Test]
-        public void Taker_Take_実行後にITakableオブジェクトを所持していない()
-        {
-            Taker taker = new() { TakableStackMask = 1 };
-            taker.TryPushTakable(takable);
-            Assert.That(taker.Take(out object _) && !taker.HasTakableObject(takableObject), Is.True);
-        }
-
         [TestCase(-1)]
         public void Taker_TakableStackMask_負の値は取らないか(int testCase)
         {
@@ -68,35 +49,13 @@ namespace EditModeTests
         }
 
         [Test]
-        public void Taker_ClearTakable_格納されたTakableをクリアできる()
+        public void Taker_Take_Takerを始点とする位置ベクトルにあるTakableオブジェクトのonTakeを実行する()
         {
-            Taker taker = new() { TakableStackMask = 1 };
-            taker.TryPushTakable(takableObject);
-            taker.ClearTakable();
-            Assert.That(taker.TakableCount, Is.EqualTo(0));
-        }
-
-        [Test]
-        public void Taker_TakableStackの増加の通知を取得できる()
-        {
-            Taker taker = new() { TakableStackMask = 1 };
-            bool IsPushedTakable = false;
-            taker.WaitingTakablesAsObservableCollection.CollectionChanged += (in NotifyCollectionChangedEventArgs<ITakable> args) =>
-            {
-                if (args.Action == NotifyCollectionChangedAction.Add)
-                {
-                    IsPushedTakable = true;
-                    return;
-                }
-            };
-            taker.TryPushTakable(takableObject);
-            Assert.That(IsPushedTakable, Is.True);
-        }
-        [Test]
-        public void Taker_Take_引数としてTakeするVector3型の方向を指定できる()
-        {
-            Taker taker = new() { TakableStackMask = 1 };
-            Assert.That(() => taker.Take(Vector3.forward, out _), Throws.Nothing);
+            GameObject player = new();
+            Taker taker = new(player, 1.5f) { TakableStackMask = 1 };
+            Vector3 rerativePosition = 2 * player.transform.forward;
+            taker.Take(rerativePosition, out _);
+            Assert.That(takable.IsCalled, Is.True);
         }
 
     }

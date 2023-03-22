@@ -1,6 +1,9 @@
+using System;
 using System.Linq;
+using JetBrains.Annotations;
 using ObservableCollections;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace ItemSearchSystem
 {
@@ -8,6 +11,8 @@ namespace ItemSearchSystem
     {
         public IObservableCollection<ITakable> WaitingTakablesAsObservableCollection => _takableStack;
         private readonly ObservableStack<ITakable> _takableStack = new();
+        public Transform Transform { get; }
+        public float MaxDistance { get; }
         private int _takableStackMask;
         public int TakableStackMask
         {
@@ -16,6 +21,25 @@ namespace ItemSearchSystem
         }
 
         public int TakableCount => _takableStack.Count;
+
+        public Taker(Transform transform, float maxDistance)
+        {
+            Transform = transform;
+            MaxDistance = maxDistance;
+        }
+
+        public Taker(GameObject takerObject, float maxDistance)
+        {
+            Transform = takerObject.transform;
+            MaxDistance = maxDistance;
+        }
+
+        public Taker()
+        {
+            Transform = new GameObject().transform;
+            MaxDistance = 1.0f;
+        }
+
         public bool TryPushTakable(GameObject gameObject)
         {
             return gameObject.TryGetComponent(out ITakable takable) && TryPushTakable(takable);
@@ -33,9 +57,11 @@ namespace ItemSearchSystem
 
         public bool Take(Vector3 takeDirection, out object obj)
         {
-            if (_takableStack.TryPop(out ITakable takable))
+            if (Physics.Raycast(Transform.position, takeDirection.normalized, out RaycastHit hitInfo, MathF.Min(MaxDistance, takeDirection.magnitude))
+                && hitInfo.collider.gameObject.TryGetComponent(out ITakable takable)
+                )
             {
-                takable.OnTaken(takeDirection);
+                takable.OnTaken(hitInfo.normal);
                 obj = takable;
                 return true;
             }
