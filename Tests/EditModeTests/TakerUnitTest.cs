@@ -4,7 +4,7 @@ using ItemSearchSystem;
 using NSubstitute;
 using UnityEditor.SceneManagement;
 using NUnit.Framework.Internal;
-
+using MainGameScene.Model;
 
 namespace EditModeTests
 {
@@ -49,14 +49,15 @@ namespace EditModeTests
         }
 
         [Test]
-        public void Taker_Take_Takerを始点とする位置ベクトルにあるTakableオブジェクトのonTakeを実行する()
+        public void Taker_Select_出力値の配列が入力値の配列の部分集合であるか()
         {
-            GameObject player = new();
-            Taker taker = new(player, 1.5f) { TakableStackMask = 1 };
-            Vector3 rerativePosition = 2 * player.transform.forward;
-            taker.Take(rerativePosition, out _);
-            Assert.That(takable.IsCalled, Is.True);
+            GameObject gameObject1 = new();
+            GameObject gameObject2 = new();
+            gameObject1.AddComponent<TakableTestSpy>();
+            gameObject2.AddComponent<TakableTestSpy>();
+            GameObject[] inputed = { gameObject1, gameObject2 };
+            Taker taker = new();
+            Assert.That(taker.Select(inputed), Is.SubsetOf(inputed));
         }
-
     }
 }

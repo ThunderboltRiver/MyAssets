@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using ObservableCollections;
 using UnityEngine;
@@ -20,7 +22,6 @@ namespace ItemSearchSystem
         }
 
         public int TakableCount => _takableStack.Count;
-
         public Taker(Transform transform, float maxDistance)
         {
             Transform = transform;
@@ -37,6 +38,10 @@ namespace ItemSearchSystem
         {
             Transform = new GameObject().transform;
             MaxDistance = 1.0f;
+        }
+        public IEnumerable<GameObject> Select(IEnumerable<GameObject> inputed)
+        {
+            return inputed;
         }
 
         public bool TryPushTakable(GameObject gameObject)
