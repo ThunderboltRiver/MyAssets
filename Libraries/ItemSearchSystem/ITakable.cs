@@ -3,6 +3,8 @@ namespace ItemSearchSystem
 {
     public interface ITakable
     {
-        public void OnTaken(Vector3 takeDirection);
+        void OnTaken(Vector3 takeDirection);
+        void OnSelected();
+        void OnDeselected();
     }
 }

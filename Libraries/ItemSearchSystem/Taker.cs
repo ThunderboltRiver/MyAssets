@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ObservableCollections;
@@ -11,6 +10,7 @@ namespace ItemSearchSystem
     public class Taker
     {
         public IObservableCollection<ITakable> WaitingTakablesAsObservableCollection => _takableStack;
+        public IEnumerable<GameObject> CurrentSelections { get; private set; }
         private readonly ObservableStack<ITakable> _takableStack = new();
         public Transform Transform { get; }
         public float MaxDistance { get; }
@@ -39,9 +39,42 @@ namespace ItemSearchSystem
             Transform = new GameObject().transform;
             MaxDistance = 1.0f;
         }
-        public IEnumerable<GameObject> Select(IEnumerable<GameObject> inputed)
+        public IEnumerable<GameObject> Select(IEnumerable<GameObject> gameObjects)
         {
-            return inputed;
+            CurrentSelections
+            = gameObjects
+            .Where(gameObject => gameObject.TryGetComponent<ITakable>(out _))
+            .Select(gameObject =>
+            {
+                gameObject.GetComponent<ITakable>().OnSelected();
+                return gameObject;
+            })
+            .ToArray();
+            return CurrentSelections;
+
+        }
+        /// <summary>
+        /// 条件に当てはまるものを選択解除する
+        /// </summary>
+        /// <param name="condition">GameObjectに対する条件式</param>
+        public void Deselect(Func<GameObject, bool> condition)
+        {
+            _ = CurrentSelections
+           .Where(condition)
+           .Select(gameObject =>
+           {
+               gameObject.GetComponent<ITakable>().OnDeselected();
+               return gameObject;
+           }).ToArray();
+
+            CurrentSelections = CurrentSelections.Where(gameObject => !condition(gameObject));
+        }
+        /// <summary>
+        /// すべての選択状態を解除する
+        /// </summary>
+        public void Deselect()
+        {
+            Deselect((GameObject gameObject) => true);
         }
 
         public bool TryPushTakable(GameObject gameObject)

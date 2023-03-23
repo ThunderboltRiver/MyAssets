@@ -71,6 +71,7 @@ namespace EditModeTests
         public int MaxRegistalbe { get; } = 1;
         public bool IsOnSearchCalled { get; private set; } = false;
         public bool IsOnTakenCalled { get; private set; } = false;
+        public bool IsOnSelectedCalled { get; private set; }
         public bool IsOnRegistCalled { get; private set; } = false;
         public void OnSearch()
         {
@@ -81,6 +82,12 @@ namespace EditModeTests
         {
             IsOnTakenCalled = true;
         }
+        public void OnSelected()
+        {
+            IsOnSearchCalled = true;
+        }
+
+        public void OnDeselected() { }
 
         public void OnRegist()
         {
