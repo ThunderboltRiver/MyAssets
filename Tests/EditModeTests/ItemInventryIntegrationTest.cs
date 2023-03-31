@@ -3,67 +3,83 @@ using NUnit.Framework;
 using ItemSearchSystem;
 using UnityEngine;
 using UnityEditor.SceneManagement;
+using System.Linq;
+using MainGameScene.Model;
+using UniRx;
 
 namespace EditModeTests
 {
     public class ItemInventryIntegrationTest
     {
         GameObject target;
+        STRTestSpy testSpy;
+        const float SEARCHING_RADIUS = 2.0f;
+        const float SERECTING_LENGTH = 1.5f;
 
         [SetUp]
         public void Setup()
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
             target = new();
-            target.transform.position = 2.0f * Vector3.forward;
+            target.transform.position = SEARCHING_RADIUS * Vector3.forward;
             SphereCollider collider = target.AddComponent<SphereCollider>();
             collider.center = Vector3.zero;
-            collider.radius = 0.5f;
-            _ = target.AddComponent<STRTestSpy>();
+            collider.radius = SEARCHING_RADIUS - SERECTING_LENGTH;
+            testSpy = target.AddComponent<STRTestSpy>();
         }
 
         [Test]
-        public void Searcher_SearchがTrueのときTakableStackMaskを超えてなければTaker_TryPushTakableがTrue()
+        public void STRTestSpyを持ったゲームオブジェクトをSearchしSelect状態にできる()
         {
             GameObject player = new();
-            Searcher searcher = new(player.transform, 0.5f, 1.0f);
-            Taker taker = new() { TakableStackMask = 1 };
-            Assert.That(searcher.Search(out GameObject gameObject) && taker.TryPushTakable(gameObject), Is.True);
+            Searcher searcher = new SphereSearcher(player.transform, SEARCHING_RADIUS); // プレイヤーを中心に指定した半径以内にあるISearchableを取得するクラス
+            Taker taker = new RayCastingTaker(player.transform, SERECTING_LENGTH); // レイキャストして当たったオブジェクトのみをSelectの対象にするTaker
+            searcher.Search();
+            taker.Select(searcher.CurrentRecognition.ToArray());
+            Assert.That(taker.CurrentSelections.ToArray(), Is.EqualTo(new GameObject[] { target }));
         }
         [Test]
-        public void Searcher_SearchがTrueのときTakableStackMaskを超えるとTaker_TryPushTakableができない()
+        public void ITakableなゲームオブジェクトがSelectされたときの通知を取得できる()
         {
-
             GameObject player = new();
-            Searcher searcher = new(player.transform, 0.5f, 1.0f);
-            Taker taker = new() { TakableStackMask = 1 };
-            Assert.That(searcher.Search(out GameObject gameObject) && taker.TryPushTakable(gameObject) && !taker.TryPushTakable(gameObject), Is.True);
+            Taker taker = new RayCastingTaker(player.transform, SERECTING_LENGTH); // レイキャストして当たったオブジェクトのみをSelectの対象にするTaker
+            bool IsAddEventCatch = false;
+            taker.CurrentSelections.ObserveAdd().Subscribe(
+                addEvent =>
+                {
+                    IsAddEventCatch = true;
+                }
+            ).AddTo(target);
+            taker.Select(new GameObject[] { target });
+            Assert.That(IsAddEventCatch, Is.True);
         }
 
         [Test]
-        public void Taker_TryPushTakable_WattingTakables内に同じオブジェクトがある場合は追加されない()
+        public void 選択中のゲームオブジェクトの中から一つ指定してTakeしIRegistableならインベントリに追加される()
         {
-
             GameObject player = new();
-            Searcher searcher = new(player.transform, 0.5f, 1.0f);
-            Taker taker = new() { TakableStackMask = 2 };
-            searcher.Search(out GameObject gameObject1);
-            taker.TryPushTakable(gameObject1);
-            searcher.Search(out GameObject gameObject2);
-            taker.TryPushTakable(gameObject2);
-            Assert.That(taker.WaitingTakablesAsObservableCollection.Count, Is.EqualTo(1));
+            int index = 0;
+            Taker taker = new RayCastingTaker(player.transform, SERECTING_LENGTH); // レイキャストして当たったオブジェクトのみをSelectの対象にするTaker
+            taker.Select(new GameObject[] { target });
+            Register register = new Register(player); //所有者が存在するRegister
+            Assert.That(taker.Take(index, out GameObject takenGameObject) && register.TryRegist(takenGameObject), Is.True);
         }
 
-
-
         [Test]
-        public void Taker_TakeしたオブジェクトがIRegistableならRegister_TryRegistを行う()
+        public void インベントリに追加されたアイテムを外部から取得できる()
         {
-            Taker taker = new() { TakableStackMask = 1 };
             Register register = new();
-            taker.TryPushTakable(target);
-            Assert.That(taker.Take(out object obj) && register.TryRegist(obj), Is.True);
+            GameObject registeredItem = new();
+            register.Inventry.ObserveAdd()
+            .Subscribe(addEvent =>
+            {
+                registeredItem = addEvent.Value;
+            })
+            .AddTo(target);
+            register.TryRegist(target);
+            Assert.That(registeredItem, Is.EqualTo(target));
         }
+
     }
 
     internal class STRTestSpy : MonoBehaviour, ISearchable, ITakable, IRegistable

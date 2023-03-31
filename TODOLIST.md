@@ -2,11 +2,23 @@
 
 ## 完成後のストーリー
 1. プレイヤーは自身の位置から近くにあるゲームワールド内のアイテムやドア・オブジェクトを認識できる
-2. さらにそのオブジェクトのいくつかを選択することができる。
-3. テイクボタン(UI)が押されると選択状態のオブジェクトによって決められた挙動を実行できる(例えばドアなら開く・閉じる、レバーを下げる・上げるなど).
+2. さらにそのオブジェクトのいくつかが自動的に選択状態(取得の待機状態)にされる
+4. テイクボタン(UI)が押されると選択状態のオブジェクトによって決められた挙動を実行できる(例えばドアなら開く・閉じる、レバーを下げる・上げるなど).
 5. その後そのオブジェクトがアイテムインベントリに追加可能であるなら追加し、追加されたときのオブジェクトの挙動が実行される。例えばパッシブスキルの影響を受けるなど
 6. 登録が成功したらそのゲームオブジェクトの後処理を行う
+7. この処理は各フレームごとに更新される
 
+``` CSharp
+void Update(){
+    gameObjects = Search() // Get GameObjects in World
+    selections = Select(gameObjects) // Set GameObjects States to Selectting
+    userInterfaces = renderUI(selections) // active UI 
+    if (userInterface is Pressed){
+        Take(userInterface.BindedGameObject) // Take the gameObject binded to Pressed UI
+        TryRegist(userInterface.BindedGameObject) // Try Regist GameObjects to Player's Item Inventry
+    }
+}
+```
 ## 必要になる機能
 ### 非ゲームオブジェクト
 - [ ] ワールド空間内オブジェクトの認識・非認識機能 
@@ -28,6 +40,8 @@
 - [x] 選択中オブジェクトのRead Update Delete機能が外部から仕様できる
 - [x] Updateは選択メソッドに対応する
 - [x] Deleteは配列内からオブジェクトを削除する行為
+- [ ] 上からGameObjectを選択状態にしたらTake時には上からの取得時の挙動を実行したい
+- [ ] 選択のフィルタリングはゲームによって変更可能にしたい.
 ### 取得機能
 - [ ] idに対応する選択中のオブジェクトの取得時のメソッドを呼び出す
 - [ ] 取得機能には成功と失敗がある
@@ -35,6 +49,7 @@
 > 取得機能が選択中の配列の参照を知らなければならない
 > 取得機能に選択機能をメンバメソッドとして内包させるか？
 - [ ] 失敗時は選択対象のまま取得時のメソッドは呼ばれない
+- [ ] 取得の方法は定義に上書きできる
 ## 必要になるテストの概要
 ### 選択機能
 - [ ] 選択機能のクラスが

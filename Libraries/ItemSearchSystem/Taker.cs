@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ObservableCollections;
+using UniRx;
 using UnityEngine;
 
 
@@ -9,65 +9,48 @@ namespace ItemSearchSystem
 {
     public class Taker
     {
-        public IObservableCollection<ITakable> WaitingTakablesAsObservableCollection => _takableStack;
-        public IEnumerable<GameObject> CurrentSelections { get; private set; }
-        private readonly ObservableStack<ITakable> _takableStack = new();
-        public Transform Transform { get; }
-        public float MaxDistance { get; }
-        private int _takableStackMask;
-        public int TakableStackMask
-        {
-            get => _takableStackMask;
-            set => _takableStackMask = value > 0 ? value : 0;
-        }
-
-        public int TakableCount => _takableStack.Count;
-        public Taker(Transform transform, float maxDistance)
-        {
-            Transform = transform;
-            MaxDistance = maxDistance;
-        }
-
-        public Taker(GameObject takerObject, float maxDistance)
-        {
-            Transform = takerObject.transform;
-            MaxDistance = maxDistance;
-        }
-
-        public Taker()
-        {
-            Transform = new GameObject().transform;
-            MaxDistance = 1.0f;
-        }
+        public IReadOnlyReactiveCollection<GameObject> CurrentSelections => _currentSelections;
+        private ReactiveCollection<GameObject> _currentSelections = new();
+        /// <summary>
+        /// 渡されたゲームオブジェクトの配列からTakableなもののみをCurrentSelectionsとして扱う.以前のSelections内のゲームオブジェクトで入力配列にないものは選択解除する.
+        /// </summary>
+        /// <param name="gameObjects">入力されるゲームオブジェクトの配列</param>
+        /// <returns></returns>
         public IEnumerable<GameObject> Select(IEnumerable<GameObject> gameObjects)
         {
-            CurrentSelections
-            = gameObjects
-            .Where(gameObject => gameObject.TryGetComponent<ITakable>(out _))
-            .Select(gameObject =>
+
+            var nextSelections = gameObjects.Where(SelectionFilter).ToArray();
+            Deselect(gameObject => !nextSelections.Contains(gameObject));
+            Array.ForEach(nextSelections, (GameObject gameObject) =>
             {
-                gameObject.GetComponent<ITakable>().OnSelected();
-                return gameObject;
-            })
-            .ToArray();
+                if (gameObject.TryGetComponent(out ITakable takable))
+                {
+                    _currentSelections.Add(gameObject);
+                    takable.OnSelected();
+                };
+            });
             return CurrentSelections;
 
         }
         /// <summary>
-        /// 条件に当てはまるものを選択解除する
+        /// 条件に当てはまるものを選択解除し,CurrentSelectionsから削除する
         /// </summary>
         /// <param name="condition">GameObjectに対する条件式</param>
         public void Deselect(Func<GameObject, bool> condition)
         {
-            _ = CurrentSelections
-           .Where(condition)
-           .Select(gameObject =>
-           {
-               gameObject.GetComponent<ITakable>().OnDeselected();
-               return gameObject;
-           }).ToArray();
+            if (_currentSelections.Count > 0)
+            {
+                Array.ForEach(_currentSelections.Where(condition).ToArray(), (GameObject gameObject) =>
+                    {
+                        if (gameObject.TryGetComponent(out ITakable takable))
+                        {
+                            _currentSelections.Remove(gameObject);
+                            takable.OnDeselected();
+                        };
+                    }
+                );
+            }
 
-            CurrentSelections = CurrentSelections.Where(gameObject => !condition(gameObject));
         }
         /// <summary>
         /// すべての選択状態を解除する
@@ -76,54 +59,81 @@ namespace ItemSearchSystem
         {
             Deselect((GameObject gameObject) => true);
         }
-
-        public bool TryPushTakable(GameObject gameObject)
+        /// <summary>
+        /// 選択する対象のフィルター。デフォルトでは常にtrueを返す
+        /// </summary>
+        /// <param name="gameObject"></param>
+        /// <returns></returns>
+        protected virtual bool SelectionFilter(GameObject gameObject)
         {
-            return gameObject.TryGetComponent(out ITakable takable) && TryPushTakable(takable);
+            return true;
         }
 
-        public bool TryPushTakable(ITakable takable)
+        /// <summary>
+        /// Takeを実行する方向を計算するための仮想メソッド.デフォルトではゼロベクトルを常に返す
+        /// </summary>
+        /// <param name="gameObject"></param>
+        /// <returns></returns>
+        protected virtual Vector3 TakeDirection(GameObject gameObject)
         {
-            if (_takableStack.Count < TakableStackMask && !_takableStack.Contains(takable))
+            return Vector3.zero;
+        }
+        public bool Take(int index, out object obj)
+        {
+            try
             {
-                _takableStack.Push(takable);
-                return true;
+                GameObject gameObject = CurrentSelections.ElementAtOrDefault(index);
+                if (gameObject.TryGetComponent(out ITakable takable))
+                {
+                    Deselect((GameObject selected) => selected == gameObject);
+                    takable.OnTaken(TakeDirection(gameObject));
+                    obj = takable;
+                    return true;
+                };
+                obj = null;
+                return false;
             }
-            return false;
-        }
-
-        public bool Take(Vector3 takeDirection, out object obj)
-        {
-            if (Physics.Raycast(Transform.position, takeDirection.normalized, out RaycastHit hitInfo, MathF.Min(MaxDistance, takeDirection.magnitude))
-                && hitInfo.collider.gameObject.TryGetComponent(out ITakable takable)
-                )
+            catch
             {
-                takable.OnTaken(hitInfo.normal);
-                obj = takable;
-                return true;
+                obj = null;
+                return false;
             }
-            obj = null;
-            return false;
 
         }
+
+        public bool Take(int index, out GameObject gameObject)
+        {
+            gameObject = new();
+            return true;
+        }
+
         public bool Take(out object obj)
         {
-            return Take(Vector3.zero, out obj);
+            return Take(0, out obj);
+        }
+    }
+
+    public class RayCastingTaker : Taker
+    {
+        private Transform _transform;
+        private float _maxDistance;
+
+        private Dictionary<GameObject, Vector3> _takeDirections = new();
+        protected override bool SelectionFilter(GameObject gameObject)
+        {
+            bool result = Physics.Raycast(_transform.position, gameObject.transform.position - _transform.position, out RaycastHit hitInfo, _maxDistance);
+            _takeDirections[gameObject] = hitInfo.normal;
+            return result;
+        }
+        protected override Vector3 TakeDirection(GameObject gameObject)
+        {
+            return _takeDirections.Remove(gameObject, out Vector3 result) ? result : Vector3.zero;
         }
 
-        public bool HasTakableObject(GameObject gameObject)
+        public RayCastingTaker(Transform transform, float maxDistance)
         {
-            return gameObject.TryGetComponent(out ITakable takable) && HasTakableObject(takable);
-        }
-
-        public bool HasTakableObject(ITakable takable)
-        {
-            return _takableStack.Contains(takable);
-        }
-
-        public void ClearTakable()
-        {
-            _takableStack.Clear();
+            _transform = transform;
+            _maxDistance = maxDistance;
         }
     }
 }

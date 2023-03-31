@@ -1,13 +1,24 @@
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
+using UniRx;
 using UnityEngine;
 
 namespace ItemSearchSystem
 {
     public class Register
     {
+        public GameObject Owner { get; }
+        public IReactiveCollection<GameObject> Inventry { get; }
         private readonly Dictionary<IRegistable, int> _inventry = new() { };
+
+        public Register()
+        {
+            Owner = new GameObject();
+        }
+        public Register(GameObject owner)
+        {
+            Owner = owner;
+        }
         public bool TryRegist(IRegistable target)
         {
             _inventry.TryGetValue(target, out int targetNum);
@@ -34,6 +45,8 @@ namespace ItemSearchSystem
         {
             return _inventry.Select(pair => (pair.Key, pair.Value));
         }
+
+
 
     }
 }

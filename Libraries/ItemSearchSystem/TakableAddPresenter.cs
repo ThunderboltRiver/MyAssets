@@ -1,5 +1,6 @@
 using System.Collections.Specialized;
 using ObservableCollections;
+using UniRx;
 using UnityEngine;
 namespace ItemSearchSystem
 {
@@ -18,19 +19,12 @@ namespace ItemSearchSystem
 
         void Start()
         {
-            taker.WaitingTakablesAsObservableCollection.CreateView(m =>
+            taker.CurrentSelections.ObserveAdd().Subscribe(gameObject =>
             {
                 view.SetActive(true);
-                return view.transform;
-            });
+            })
+            .AddTo(this);
 
-            taker.WaitingTakablesAsObservableCollection.CollectionChanged += (in NotifyCollectionChangedEventArgs<ITakable> args) =>
-            {
-                if (args.Action == NotifyCollectionChangedAction.Remove)
-                {
-                    view.SetActive(false);
-                }
-            };
         }
     }
 }

@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using ItemSearchSystem;
 using UnityEngine.TestTools;
+using System.Linq;
 
 namespace PlayModeTests
 {
@@ -17,7 +18,7 @@ namespace PlayModeTests
             GameObject presenter = new();
             view = new();
             view.SetActive(false);
-            taker = new() { TakableStackMask = 1 };
+            taker = new();
             var takableAddPresenter = presenter.AddComponent<TakableAddPresenter>();
             takableAddPresenter.ChangeTaker(taker);
             takableAddPresenter.ChangeView(view);
@@ -25,20 +26,27 @@ namespace PlayModeTests
         }
 
         [UnityTest]
-        public IEnumerator TakableAddPresenter_CreateView_takables変更時に対応のViewが作成されるか()
+        public IEnumerator TakableAddPresenter_選択中のオブジェクトの追加に対して対応のViewが作成されるか()
         {
-            taker.TryPushTakable(new GameObject().AddComponent<TakableTestSpy>());
+            GameObject[] selections = { new GameObject() };
+            selections[0].AddComponent<TakableTestSpy>();
+            taker.Select(selections);
             yield return null;
             Assert.That(view.activeSelf, Is.True);
         }
 
         [UnityTest]
-        public IEnumerator TakableAddPresenter_Take成功後にViewが非表示になるか()
+        public IEnumerator TakableAddPresenter_選択中のオブジェクトの減少に対して対応のViewが非表示されるか()
         {
-            taker.TryPushTakable(new GameObject().AddComponent<TakableTestSpy>());
+            GameObject[] selections = { new GameObject(), new GameObject() };
+            selections[0].AddComponent<TakableTestSpy>();
+            selections[1].AddComponent<TakableTestSpy>();
+            taker.Select(selections);
+            bool isActivated = view.activeSelf;
             yield return null;
-            taker.Take(out _);
-            Assert.That(view.activeSelf, Is.False);
+            taker.Select(new GameObject[] { selections[0] });
+            yield return null;
+            Assert.That((isActivated ^ view.activeSelf) && !view.activeSelf, Is.True);
         }
     }
     internal class TakableTestSpy : MonoBehaviour, ITakable

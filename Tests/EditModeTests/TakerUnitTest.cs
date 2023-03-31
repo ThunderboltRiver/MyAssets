@@ -4,6 +4,9 @@ using ItemSearchSystem;
 using NSubstitute;
 using UnityEditor.SceneManagement;
 using NUnit.Framework.Internal;
+using System.Collections.Generic;
+using System.Linq;
+using UniRx;
 
 namespace EditModeTests
 {
@@ -26,6 +29,7 @@ namespace EditModeTests
             IsCalledOnDeselected = true;
         }
     }
+
     public class TakerUnitTest
     {
         GameObject takableObject;
@@ -39,24 +43,47 @@ namespace EditModeTests
             takable = takableObject.AddComponent<TakableTestSpy>();
             _ = takableObject.AddComponent<SphereCollider>();
         }
-        [TestCase(2)]
-        public void Taker_TryPushTakable_TakableStackMask以内の個数のITakeableオブジェクトを格納できる(int takableStackMask)
+        [Test]
+        public void Taker_CurrentSelectionsはReadOnlyReactiveCollectionである()
         {
-            Taker taker = new() { TakableStackMask = takableStackMask };
-
-            Assert.That(taker.TryPushTakable(takableObject)
-                && taker.TryPushTakable(Substitute.For<ITakable>())
-                && !taker.TryPushTakable(Substitute.For<ITakable>())
-                , Is.True);
+            Taker taker = new();
+            Assert.That(taker.CurrentSelections is IReadOnlyReactiveCollection<GameObject>, Is.True);
         }
 
-        [TestCase(-1)]
-        public void Taker_TakableStackMask_負の値は取らないか(int testCase)
+        [Test]
+        public void Taker_Select_要素が増えるとCurrentSelectionsから要素の追加の通知を受け取ることができる()
         {
-            Taker taker = new() { TakableStackMask = testCase };
-            Assert.That(taker.TakableStackMask, Is.GreaterThanOrEqualTo(0));
+            Taker taker = new();
+            GameObject gameObject = new();
+            gameObject.AddComponent<TakableTestSpy>();
+            bool IsCalled = false;
+            taker.CurrentSelections.ObserveAdd().Subscribe(addevent =>
+            {
+                IsCalled = true;
+            })
+            .AddTo(gameObject)
+            ;
+            taker.Select(new GameObject[] { gameObject });
+            Assert.That(IsCalled, Is.True);
         }
 
+        [Test]
+        public void Taker_Select_要素が減るとCurrentSelectionsから要素の削除の通知を受け取ることができる()
+        {
+            Taker taker = new();
+            GameObject gameObject = new();
+            gameObject.AddComponent<TakableTestSpy>();
+            bool IsCalled = false;
+            taker.CurrentSelections.ObserveRemove().Subscribe(addevent =>
+            {
+                IsCalled = true;
+            })
+            .AddTo(gameObject)
+            ;
+            taker.Select(new GameObject[] { gameObject });
+            taker.Select(new GameObject[] { });
+            Assert.That(IsCalled, Is.True);
+        }
         [Test]
         public void Taker_Select_出力値の配列が入力値の配列の部分集合であるか()
         {
@@ -90,6 +117,16 @@ namespace EditModeTests
             Assert.That(takable.IsCalledOnDeselected, Is.True);
         }
         [Test]
+        public void Taekr_以前のSelectionsにはあるが現在のSelectionsにはない分のGameObjectは自動でDeselectされる()
+        {
+            Taker taker = new();
+            GameObject[] oldGameObjects = { takableObject };
+            taker.Select(oldGameObjects);
+            GameObject[] nextGameObjects = { new GameObject() };
+            taker.Select(nextGameObjects);
+            Assert.That(takable.IsCalledOnDeselected, Is.True);
+        }
+        [Test]
         public void Taker_Select_出力結果がCurrentSelectionプロパティと一致する()
         {
             GameObject gameObject1 = new();
@@ -99,6 +136,41 @@ namespace EditModeTests
             GameObject[] inputed = { gameObject1, gameObject2 };
             Taker taker = new();
             Assert.That(taker.Select(inputed), Is.EqualTo(taker.CurrentSelections));
+        }
+
+        [TestCase(-1)]
+        [TestCase(0)]
+        public void Taker_Take_入力インデックスに対応した要素がない場合は出力はfalse(int index)
+        {
+            Taker taker = new();
+            Assert.That(taker.Take(index, out object _), Is.False);
+        }
+
+        [Test]
+        public void Taker_Take_成功したゲームオブジェクトはCurrentSelectionsから削除される()
+        {
+
+            Taker taker = new();
+            GameObject[] selections = { takableObject };
+            taker.Select(selections);
+            taker.Take(0, out object _);
+            Assert.That(taker.CurrentSelections, Has.No.Member(takableObject));
+        }
+
+        [Test]
+        public void 検証_プロパティの古い値を保持できるか()
+        {
+            Taker taker = new();
+            GameObject gameObject1 = new();
+            GameObject gameObject2 = new();
+            gameObject1.AddComponent<TakableTestSpy>();
+            gameObject2.AddComponent<TakableTestSpy>();
+            GameObject[] oldinputed = { gameObject1 };
+            taker.Select(oldinputed);
+            IEnumerable<GameObject> oldSelections = taker.CurrentSelections.ToArray();
+            GameObject[] newinputed = { gameObject2 };
+            taker.Select(newinputed);
+            Assert.That(oldSelections, Is.Not.EqualTo(taker.CurrentSelections.ToArray()));
         }
     }
 }
