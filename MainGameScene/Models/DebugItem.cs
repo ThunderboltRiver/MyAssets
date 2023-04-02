@@ -14,6 +14,10 @@ namespace MainGameScene.Model
         {
             Debug.Log("Searched DebugItem");
         }
+        public void OnDesearch()
+        {
+
+        }
 
         public void OnSelect()
         {

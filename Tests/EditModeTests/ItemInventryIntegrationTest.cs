@@ -1,11 +1,10 @@
-using System;
 using NUnit.Framework;
 using ItemSearchSystem;
 using UnityEngine;
 using UnityEditor.SceneManagement;
 using System.Linq;
-using MainGameScene.Model;
 using UniRx;
+using UnityEditor.Build.Player;
 
 namespace EditModeTests
 {
@@ -29,7 +28,7 @@ namespace EditModeTests
         }
 
         [Test]
-        public void STRTestSpyを持ったゲームオブジェクトをSearchしSelect状態にできる()
+        public void プレイヤーは自身の近くにあるISearchableを認識し選択状態にできる()
         {
             GameObject player = new();
             Searcher searcher = new SphereSearcher(player.transform, SEARCHING_RADIUS); // プレイヤーを中心に指定した半径以内にあるISearchableを取得するクラス
@@ -61,23 +60,23 @@ namespace EditModeTests
             int index = 0;
             Taker taker = new RayCastingTaker(player.transform, SERECTING_LENGTH); // レイキャストして当たったオブジェクトのみをSelectの対象にするTaker
             taker.Select(new GameObject[] { target });
-            Register register = new Register(player); //所有者が存在するRegister
+            Register register = new(player); //所有者が存在するRegister
             Assert.That(taker.Take(index, out GameObject takenGameObject) && register.TryRegist(takenGameObject), Is.True);
         }
 
         [Test]
-        public void インベントリに追加されたアイテムを外部から取得できる()
+        public void アイテムがインベントリに追加されたときにそのアイテムの情報を外部から取得できる()
         {
             Register register = new();
-            GameObject registeredItem = new();
-            register.Inventry.ObserveAdd()
+            RegisteredInfo registeredInfo = new();
+            register.ObserveItemAdd
             .Subscribe(addEvent =>
             {
-                registeredItem = addEvent.Value;
+                registeredInfo = addEvent;
             })
             .AddTo(target);
             register.TryRegist(target);
-            Assert.That(registeredItem, Is.EqualTo(target));
+            Assert.That(registeredInfo.item, Is.EqualTo(testSpy));
         }
 
     }
@@ -102,10 +101,11 @@ namespace EditModeTests
         {
             IsOnSearchCalled = true;
         }
+        public void OnDesearch() { }
 
         public void OnDeselected() { }
 
-        public void OnRegist()
+        public void OnRegist(GameObject gameObject)
         {
             IsOnRegistCalled = true;
         }

@@ -1,8 +1,10 @@
+using UnityEngine;
+
 namespace ItemSearchSystem
 {
     public interface IRegistable
     {
         int MaxRegistalbe { get; }
-        void OnRegist();
+        void OnRegist(GameObject Owner);
     }
 }

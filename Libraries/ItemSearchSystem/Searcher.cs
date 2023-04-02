@@ -1,17 +1,36 @@
 using System;
 using System.Linq;
+using UniRx;
+using UnityEditor;
 using UnityEngine;
 namespace ItemSearchSystem
 {
     public abstract class Searcher
     {
+        private readonly ReactiveCollection<GameObject> _currentRecognition = new();
         protected abstract GameObject[] Recognize();
-        public GameObject[] CurrentRecognition { get; }
-        public GameObject[] Search()
+        public IReadOnlyReactiveCollection<GameObject> CurrentRecognition => _currentRecognition;
+        public void Search()
         {
-            GameObject[] result = Recognize().Where(gameObject => gameObject.TryGetComponent<ISearchable>(out _)).ToArray();
-            Array.ForEach(result, (GameObject gameObject) => { gameObject.GetComponent<ISearchable>()?.OnSearch(); });
-            return result;
+            GameObject[] recognition = Recognize().Where(gameObject => gameObject.TryGetComponent<ISearchable>(out _)).ToArray();
+            Desearch(gameObject => !recognition.Contains(gameObject));
+            Array.ForEach(recognition, (GameObject gameObject) =>
+            {
+                _currentRecognition.Add(gameObject);
+                gameObject.GetComponent<ISearchable>().OnSearch();
+            });
+        }
+        public void Desearch(Func<GameObject, bool> condition)
+        {
+            if (_currentRecognition != null)
+            {
+                Array.ForEach(_currentRecognition.Where(gameObject => gameObject.TryGetComponent<ISearchable>(out _) && condition(gameObject)).ToArray()
+                , gameObject =>
+                {
+                    _currentRecognition.Remove(gameObject);
+                    gameObject.GetComponent<ISearchable>().OnDesearch();
+                });
+            }
         }
     }
 

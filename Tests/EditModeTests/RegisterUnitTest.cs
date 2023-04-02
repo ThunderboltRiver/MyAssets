@@ -56,7 +56,7 @@ namespace EditModeTests
             Register register = new();
             IRegistable registable = SubstituteIRegistalbe(1);
             bool isCalled = false;
-            registable.When(x => x.OnRegist()).Do(_ => isCalled = true);
+            registable.When(x => x.OnRegist(register.Owner)).Do(_ => isCalled = true);
             Assert.That(register.TryRegist(registable) && isCalled, Is.True);
         }
 
@@ -83,7 +83,7 @@ namespace EditModeTests
     internal class RegistableMonoBehaviourMock : MonoBehaviour, IRegistable
     {
         public int MaxRegistalbe => 1;
-        public void OnRegist()
+        public void OnRegist(GameObject owner)
         {
 
         }

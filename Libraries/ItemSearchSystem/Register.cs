@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UniRx;
@@ -8,7 +9,10 @@ namespace ItemSearchSystem
     public class Register
     {
         public GameObject Owner { get; }
-        public IReactiveCollection<GameObject> Inventry { get; }
+
+        public IObservable<RegisteredInfo> ObserveItemAdd => _itemAddSubject;
+        private readonly Subject<RegisteredInfo> _itemAddSubject = new();
+
         private readonly Dictionary<IRegistable, int> _inventry = new() { };
 
         public Register()
@@ -21,11 +25,12 @@ namespace ItemSearchSystem
         }
         public bool TryRegist(IRegistable target)
         {
-            _inventry.TryGetValue(target, out int targetNum);
-            if (targetNum < target.MaxRegistalbe)
+            _inventry.TryGetValue(target, out int itemNum);
+            if (itemNum < target.MaxRegistalbe)
             {
-                _inventry[target] = targetNum + 1;
-                target.OnRegist();
+                _inventry[target] = itemNum + 1;
+                target.OnRegist(Owner);
+                _itemAddSubject.OnNext(new RegisteredInfo(target, 1));
                 return true;
             }
             return false;
@@ -45,8 +50,17 @@ namespace ItemSearchSystem
         {
             return _inventry.Select(pair => (pair.Key, pair.Value));
         }
+    }
 
+    public readonly struct RegisteredInfo
+    {
+        public readonly IRegistable item;
+        public readonly int itemNum;
 
-
+        public RegisteredInfo(IRegistable item, int itemNum)
+        {
+            this.item = item;
+            this.itemNum = itemNum;
+        }
     }
 }

@@ -9,56 +9,19 @@ namespace ItemSearchSystem
 {
     public class Taker
     {
-        public IReadOnlyReactiveCollection<GameObject> CurrentSelections => _currentSelections;
         private ReactiveCollection<GameObject> _currentSelections = new();
-        /// <summary>
-        /// 渡されたゲームオブジェクトの配列からTakableなもののみをCurrentSelectionsとして扱う.以前のSelections内のゲームオブジェクトで入力配列にないものは選択解除する.
-        /// </summary>
-        /// <param name="gameObjects">入力されるゲームオブジェクトの配列</param>
-        /// <returns></returns>
-        public IEnumerable<GameObject> Select(IEnumerable<GameObject> gameObjects)
-        {
+        public IReadOnlyReactiveCollection<GameObject> CurrentSelections => _currentSelections;
+        public readonly int maxSelection;
 
-            var nextSelections = gameObjects.Where(SelectionFilter).ToArray();
-            Deselect(gameObject => !nextSelections.Contains(gameObject));
-            Array.ForEach(nextSelections, (GameObject gameObject) =>
-            {
-                if (gameObject.TryGetComponent(out ITakable takable))
-                {
-                    _currentSelections.Add(gameObject);
-                    takable.OnSelected();
-                };
-            });
-            return CurrentSelections;
-
-        }
-        /// <summary>
-        /// 条件に当てはまるものを選択解除し,CurrentSelectionsから削除する
-        /// </summary>
-        /// <param name="condition">GameObjectに対する条件式</param>
-        public void Deselect(Func<GameObject, bool> condition)
+        public Taker()
         {
-            if (_currentSelections.Count > 0)
-            {
-                Array.ForEach(_currentSelections.Where(condition).ToArray(), (GameObject gameObject) =>
-                    {
-                        if (gameObject.TryGetComponent(out ITakable takable))
-                        {
-                            _currentSelections.Remove(gameObject);
-                            takable.OnDeselected();
-                        };
-                    }
-                );
-            }
-
+            maxSelection = 1;
         }
-        /// <summary>
-        /// すべての選択状態を解除する
-        /// </summary>
-        public void Deselect()
+        public Taker(int maxSelection)
         {
-            Deselect((GameObject gameObject) => true);
+            this.maxSelection = maxSelection;
         }
+
         /// <summary>
         /// 選択する対象のフィルター。デフォルトでは常にtrueを返す
         /// </summary>
@@ -78,7 +41,64 @@ namespace ItemSearchSystem
         {
             return Vector3.zero;
         }
-        public bool Take(int index, out object obj)
+
+        /// <summary>
+        /// 渡されたゲームオブジェクトの配列からTakableなもののみをCurrentSelectionsとして扱う.以前のSelections内のゲームオブジェクトで入力配列にないものは選択解除する.
+        /// </summary>
+        /// <param name="gameObjects">入力されるゲームオブジェクトの配列</param>
+        /// <returns></returns>
+        public IEnumerable<GameObject> Select(IEnumerable<GameObject> gameObjects)
+        {
+
+            var nextSelections = gameObjects.Where(SelectionFilter).Take(maxSelection).ToArray();
+            Deselect(gameObject => !nextSelections.Contains(gameObject));
+            Array.ForEach(nextSelections, (GameObject gameObject) =>
+            {
+                if (gameObject.TryGetComponent(out ITakable takable))
+                {
+                    _currentSelections.Add(gameObject);
+                    takable.OnSelected();
+                };
+            });
+            return CurrentSelections;
+
+        }
+
+        /// <summary>
+        /// 条件に当てはまるものを選択解除し,CurrentSelectionsから削除する
+        /// </summary>
+        /// <param name="condition">GameObjectに対する条件式</param>
+        public void Deselect(Func<GameObject, bool> condition)
+        {
+            if (_currentSelections != null)
+            {
+                Array.ForEach(_currentSelections.Where(gameObject => gameObject.TryGetComponent<ITakable>(out _) && condition(gameObject)).ToArray()
+                , gameObject =>
+                    {
+                        _currentSelections.Remove(gameObject);
+                        gameObject.GetComponent<ITakable>().OnDeselected();
+                    }
+                );
+            }
+
+        }
+
+        /// <summary>
+        /// すべての選択状態を解除する
+        /// </summary>
+        public void Deselect()
+        {
+            Deselect((GameObject gameObject) => true);
+        }
+
+        /// <summary>
+        /// CurrentSelectionsの中からインデックスで指定されたゲームオブジェクト内のコンポーネントからITakableを探してOnTakenを実行する
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="obj"></param>
+        /// <param name="go"></param>
+        /// <returns></returns>
+        public bool Take(int index, out object obj, out GameObject go)
         {
             try
             {
@@ -87,24 +107,32 @@ namespace ItemSearchSystem
                 {
                     Deselect((GameObject selected) => selected == gameObject);
                     takable.OnTaken(TakeDirection(gameObject));
+                    go = gameObject;
                     obj = takable;
                     return true;
                 };
+                go = null;
                 obj = null;
                 return false;
             }
             catch
             {
+                go = null;
                 obj = null;
                 return false;
             }
 
         }
 
-        public bool Take(int index, out GameObject gameObject)
+
+        public bool Take(int index, out object obj)
         {
-            gameObject = new();
-            return true;
+            return Take(index, out obj, out _);
+        }
+
+        public bool Take(int index, out GameObject go)
+        {
+            return Take(index, out _, out go);
         }
 
         public bool Take(out object obj)

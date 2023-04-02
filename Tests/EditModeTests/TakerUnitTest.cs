@@ -1,12 +1,12 @@
 using UnityEngine;
 using NUnit.Framework;
 using ItemSearchSystem;
-using NSubstitute;
 using UnityEditor.SceneManagement;
 using NUnit.Framework.Internal;
 using System.Collections.Generic;
 using System.Linq;
 using UniRx;
+using System;
 
 namespace EditModeTests
 {
@@ -48,6 +48,17 @@ namespace EditModeTests
         {
             Taker taker = new();
             Assert.That(taker.CurrentSelections is IReadOnlyReactiveCollection<GameObject>, Is.True);
+        }
+
+        [Test]
+        public void Taker_Select_maxSelectionを超えてゲームオブジェクトを選択できない()
+        {
+            int maxSelection = 2;
+            Taker taker = new(maxSelection);
+            GameObject[] overInputs = { new GameObject(), new GameObject(), new GameObject() };
+            Array.ForEach(overInputs, gameObject => { gameObject.AddComponent<TakableTestSpy>(); });
+            taker.Select(overInputs);
+            Assert.That(taker.CurrentSelections.Count, Is.LessThanOrEqualTo(taker.maxSelection));
         }
 
         [Test]
