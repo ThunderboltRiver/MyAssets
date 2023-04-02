@@ -2,6 +2,7 @@ using ItemSearchSystem;
 using UnityEngine;
 using UnityEditor.SceneManagement;
 using NUnit.Framework;
+using System.Linq;
 
 namespace EditModeTests
 {
@@ -22,6 +23,7 @@ namespace EditModeTests
         }
 
     }
+
     public class SearcherTestSpy : Searcher
     {
         public GameObject searchable;
@@ -34,7 +36,7 @@ namespace EditModeTests
     public class SearcherUnitTest
     {
 
-        Searcher searcher;
+        SearcherTestSpy searcher;
         GameObject target;
         SearchTestSpy searchTestSpy;
         /// <summary>
@@ -59,6 +61,16 @@ namespace EditModeTests
             searcher.Search();
             Assert.That(searchTestSpy.IsCalled, Is.True);
         }
+        [Test]
+        public void Searcher_Search_targetと一致するものを保持できる()
+        {
+            searcher.Search();
+            GameObject other = new();
+            other.AddComponent<SearchTestSpy>();
+            searcher.searchable = other;
+            searcher.Search((GameObject gameObject) => gameObject == target);
+            Assert.That(searcher.CurrentRecognition.Contains(target), Is.True);
+        }
 
         [Test]
         public void Searcher_Desearch_要素が減るとその要素のOnDesearchが呼ばれる()
@@ -67,5 +79,8 @@ namespace EditModeTests
             searcher.Desearch((GameObject gameObject) => gameObject == target);
             Assert.That(searchTestSpy.IsOnDesearchCalled, Is.True);
         }
+
     }
+
+
 }
