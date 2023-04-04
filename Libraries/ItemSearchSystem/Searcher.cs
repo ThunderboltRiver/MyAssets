@@ -34,7 +34,7 @@ namespace ItemSearchSystem
         {
             GameObject[] recognition = Recognize().Where(gameObject => gameObject.TryGetComponent<ISearchable>(out _)).ToArray();
             Desearch(gameObject => !recognition.Contains(gameObject) && !preservingCondition(gameObject));
-            Array.ForEach(recognition, (GameObject gameObject) =>
+            Array.ForEach(recognition.Where(gameObject => !_currentRecognition.Contains(gameObject)).ToArray(), (GameObject gameObject) =>
             {
                 _currentRecognition.Add(gameObject);
                 gameObject.GetComponent<ISearchable>().OnSearch();

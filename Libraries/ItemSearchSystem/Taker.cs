@@ -49,16 +49,16 @@ namespace ItemSearchSystem
         /// <returns></returns>
         public IEnumerable<GameObject> Select(IEnumerable<GameObject> gameObjects)
         {
-
-            var nextSelections = gameObjects.Where(SelectionFilter).Take(maxSelection).ToArray();
+            var nextSelections = gameObjects
+                    .Where(gameObject => SelectionFilter(gameObject) && gameObject.TryGetComponent<ITakable>(out _))
+                    .Take(maxSelection)
+                    .ToArray();
             Deselect(gameObject => !nextSelections.Contains(gameObject));
-            Array.ForEach(nextSelections, (GameObject gameObject) =>
+            Array.ForEach(nextSelections.Where(gameObject => !CurrentSelections.Contains(gameObject)).ToArray(), (GameObject gameObject) =>
             {
-                if (gameObject.TryGetComponent(out ITakable takable))
-                {
-                    _currentSelections.Add(gameObject);
-                    takable.OnSelected();
-                };
+                ITakable takable = gameObject.GetComponent<ITakable>();
+                _currentSelections.Add(gameObject);
+                takable.OnSelected();
             });
             return CurrentSelections;
 

@@ -48,7 +48,7 @@ namespace ItemSearchSystem
 
         public IEnumerable<(IRegistable, int)> GetAllRegistered()
         {
-            return _inventry.Select(pair => (pair.Key, pair.Value));
+            return _inventry.Select(pair => (pair.Key, pair.Value)).ToArray();
         }
     }
 

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UniRx;
 using System;
+using UnityEditor;
 
 namespace EditModeTests
 {
@@ -15,6 +16,7 @@ namespace EditModeTests
         public bool IsCalled { get; private set; }
         public bool IsCalledOnSelected { get; private set; }
         public bool IsCalledOnDeselected { get; private set; }
+        public int OnSelectedCount { get; private set; } = 0;
         public void OnTaken(Vector3 takeDirection)
         {
             IsCalled = true;
@@ -22,12 +24,14 @@ namespace EditModeTests
         public void OnSelected()
         {
             IsCalledOnSelected = true;
+            OnSelectedCount++;
         }
 
         public void OnDeselected()
         {
             IsCalledOnDeselected = true;
         }
+
     }
 
     public class TakerUnitTest
@@ -49,6 +53,42 @@ namespace EditModeTests
             Taker taker = new();
             Assert.That(taker.CurrentSelections is IReadOnlyReactiveCollection<GameObject>, Is.True);
         }
+
+        [Test]
+        public void Taker_Select_入力配列内のCurrentSelectionsに含まれる要素に対してはOnSelectedもOnDeselectedも呼ばない()
+        {
+            Taker taker = new();
+            GameObject gameObject = new();
+            var takable = gameObject.AddComponent<TakableTestSpy>();
+            taker.Select(new GameObject[] { gameObject });
+            taker.Select(new GameObject[] { gameObject });
+            Assert.That(takable.OnSelectedCount == 1 & !takable.IsCalledOnDeselected, Is.True);
+        }
+
+        [Test]
+        public void Taker_Select_入力配列内のCurrentSelectionsに含まれない要素に対してはOnSelectedを呼ぶ()
+        {
+            Taker taker = new(maxSelection: 2);
+            GameObject gameObjectPrev = new();
+            GameObject gameObjectNext = new();
+            _ = gameObjectPrev.AddComponent<TakableTestSpy>();
+            var takableNext = gameObjectNext.AddComponent<TakableTestSpy>();
+            taker.Select(new GameObject[] { gameObjectPrev });
+            taker.Select(new GameObject[] { gameObjectNext });
+            Assert.That(takableNext.IsCalledOnSelected, Is.True);
+        }
+
+        [Test]
+        public void Taker_Select_入力配列になくてCurrentSelectionsに含まれる要素に対してはOnDeselectedを呼ぶ()
+        {
+            Taker taker = new();
+            GameObject gameObject = new();
+            var takable = gameObject.AddComponent<TakableTestSpy>();
+            taker.Select(new GameObject[] { gameObject });
+            taker.Select(new GameObject[] { new GameObject() });
+            Assert.That(takable.IsCalledOnDeselected, Is.True);
+        }
+
 
         [Test]
         public void Taker_Select_maxSelectionを超えてゲームオブジェクトを選択できない()

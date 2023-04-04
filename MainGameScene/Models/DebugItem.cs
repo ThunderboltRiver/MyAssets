@@ -6,9 +6,10 @@ namespace MainGameScene.Model
 {
 
     [Serializable]
-    [CreateAssetMenu(fileName = "DebugItem", menuName = "CreateDebugItem")]
-    public class DebugItem : ScriptableObject, ISearchable, ISelectable, IUseable
+    //[CreateAssetMenu(fileName = "DebugItem", menuName = "CreateDebugItem")]
+    public class DebugItem : MonoBehaviour, ISearchable, ITakable, IRegistable
     {
+        int IRegistable.MaxRegistalbe => 1;
         public GameObject prefab;
         public void OnSearch()
         {
@@ -16,18 +17,27 @@ namespace MainGameScene.Model
         }
         public void OnDesearch()
         {
-
+            Debug.Log("DeSearched DebugItem");
         }
 
-        public void OnSelect()
+        public void OnSelected()
         {
-            Debug.Log("Selected This DebugItem");
+            Debug.Log("Selected DebugItem");
+        }
+        public void OnTaken(Vector3 takeDirection)
+        {
+            Debug.Log("Taken DebugItem");
+        }
+        public void OnDeselected()
+        {
+            Debug.Log("DeSelected DebugItem");
         }
 
-        public void Use()
+        public void OnRegist(GameObject owner)
         {
-            Debug.Log("Called UseMethod in This DebugItem");
+            Debug.Log($"Registed DebugItem at {owner.name}");
         }
+
     }
 
 
