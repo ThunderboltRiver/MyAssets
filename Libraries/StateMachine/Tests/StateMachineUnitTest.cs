@@ -1,12 +1,45 @@
+using System;
 using NUnit.Framework;
 using State = StateMachine.StateMachine<object>.State;
 namespace StateMachine
 {
     public class StateMachineUnitTest
     {
-        // A Test behaves as an ordinary method
         public class State1 : State
         {
+            public static bool isEntered = false;
+            public static bool isUpdated = false;
+            public static bool isLateUpdated = false;
+            public static bool isFixedUpdated = false;
+            public static bool isExited = false;
+            public State1()
+            {
+                isEntered = false;
+                isUpdated = false;
+                isLateUpdated = false;
+                isFixedUpdated = false;
+                isExited = false;
+            }
+            protected override void OnEnter()
+            {
+                isEntered = true;
+            }
+            protected override void OnUpdate()
+            {
+                isUpdated = true;
+            }
+            protected override void OnLateUpdate()
+            {
+                isLateUpdated = true;
+            }
+            protected override void OnFixedUpdate()
+            {
+                isFixedUpdated = true;
+            }
+            protected override void OnExit()
+            {
+                isExited = true;
+            }
         }
 
         public class State2 : State
@@ -18,7 +51,7 @@ namespace StateMachine
 
 
         [Test]
-        public void StateMachine_State1で開始するとeventKeyが1を発行されたときにState2に遷移する()
+        public void StateMachine_State1からState2への遷移がeventKeyが1で登録されている場合にState1で開始するとeventKeyが1を発行されたときにState2に遷移する()
         {
             object player = new();
             var stateMachine = new StateMachine<object>(player);
@@ -32,7 +65,7 @@ namespace StateMachine
         }
 
         [Test]
-        public void StateMachine_State1で開始するとeventKeyが2を発行されたときにState2に遷移しない()
+        public void StateMachine_State1からState2への遷移がeventKeyが1で登録されている場合にState1で開始するとeventKeyが2を発行されたときにState2に遷移しない()
         {
             object player = new();
             var stateMachine = new StateMachine<object>(player);
@@ -45,16 +78,24 @@ namespace StateMachine
             Assert.That(didStartState1 && didEndState2, Is.False);
         }
         [Test]
-        public void StateMachine_AddTransition_すでにState1から同じeventKeyでの遷移が登録されている場合は新しい遷移で上書きされる()
+        public void StateMachine_AddTransition_State1からState2への遷移をeventKeyを1にして登録できる()
         {
             object player = new();
             var stateMachine = new StateMachine<object>(player);
             var eventKey = 1;
             stateMachine.AddTransition<State1, State2>(eventKey);
-            bool isBeforeState2 = stateMachine.CurrentState == new State2();
-            stateMachine.AddTransition<State1, State3>(eventKey);
-            bool isAfterState3 = stateMachine.CurrentState == new State3();
-            Assert.That(isBeforeState2 && isAfterState3, Is.True);
+            stateMachine.Start<State1>();
+            stateMachine.DispatchEvent(eventKey);
+            Assert.That(stateMachine.CurrentState, Is.TypeOf<State2>());
+        }
+        [Test]
+        public void StateMachine_AddTransition_すでにState1からの同じeventKeyでの遷移が登録されている場合はInvalidOperationExceptionを投げる()
+        {
+            object player = new();
+            var stateMachine = new StateMachine<object>(player);
+            var eventKey = 1;
+            stateMachine.AddTransition<State1, State2>(eventKey);
+            Assert.That(() => { stateMachine.AddTransition<State1, State3>(eventKey); }, Throws.Exception.TypeOf<InvalidOperationException>());
         }
 
         [Test]
@@ -63,7 +104,100 @@ namespace StateMachine
             object player = new();
             var stateMachine = new StateMachine<object>(player);
             stateMachine.Start<State1>();
-            Assert.That(stateMachine.CurrentState, Is.EqualTo(new State1()));
+            Assert.That(stateMachine.CurrentState, Is.TypeOf<State1>());
         }
+
+        [Test]
+        public void StateMachine_Start_State1で開始すると内部でState1のOnEnterが呼ばれる()
+        {
+            object player = new();
+            var stateMachine = new StateMachine<object>(player);
+            stateMachine.Start<State1>();
+            Assert.That(State1.isEntered, Is.True);
+        }
+
+        [Test]
+        public void StateMachine_Update_CurrentStateがState1のときは内部でState1のOnUpdateが呼ばれる()
+        {
+            object player = new();
+            var stateMachine = new StateMachine<object>(player);
+            stateMachine.Start<State1>();
+            stateMachine.Update();
+            Assert.That(State1.isUpdated, Is.True);
+        }
+
+        [Test]
+        public void StateMachine_FixedUpdate_CurrentStateがState1のときは内部でState1のOnFixedUpdateが呼ばれる()
+        {
+            object player = new();
+            var stateMachine = new StateMachine<object>(player);
+            stateMachine.Start<State1>();
+            stateMachine.FixedUpdate();
+            Assert.That(State1.isFixedUpdated, Is.True);
+        }
+
+        [Test]
+        public void StateMachine_LateUpdate_CurrentStateがState1のときは内部でState1のOnLateUpdateが呼ばれる()
+        {
+            object player = new();
+            var stateMachine = new StateMachine<object>(player);
+            stateMachine.Start<State1>();
+            stateMachine.LateUpdate();
+            Assert.That(State1.isLateUpdated, Is.True);
+        }
+
+        [Test]
+        public void StateMachine_DispatchEvent_CurrentStateとeventKeyに対応する遷移が登録されている場合は内部でCurrentStateのOnExitが呼ばれる()
+        {
+            object player = new();
+            var stateMachine = new StateMachine<object>(player);
+            int eventKey = 1;
+            stateMachine.Start<State1>();
+            stateMachine.AddTransition<State1, State2>(eventKey);
+            stateMachine.DispatchEvent(eventKey);
+            Assert.That(State1.isExited, Is.True);
+        }
+
+        [Test]
+        public void StateMachine_DispatchEvent_CurrentStateとeventKeyに対応する遷移が登録されている場合は内部で次のStateのOnEnterが呼ばれる()
+        {
+            object player = new();
+            var stateMachine = new StateMachine<object>(player);
+            int eventKey = 1;
+            stateMachine.Start<State2>();
+            stateMachine.AddTransition<State2, State1>(eventKey);
+            stateMachine.DispatchEvent(eventKey);
+            Assert.That(State1.isEntered, Is.True);
+        }
+
+        [Test]
+        public void StateMachine_Stop_CurrentStateを停止する()
+        {
+            object player = new();
+            var stateMachine = new StateMachine<object>(player);
+            stateMachine.Start<State1>();
+            stateMachine.Stop();
+            Assert.That(stateMachine.IsActivate, Is.False);
+        }
+        [Test]
+        public void StateMachine_Stop_CurrentStateを停止すると内部でCurrentStateのOnExitが呼ばれる()
+        {
+            object player = new();
+            var stateMachine = new StateMachine<object>(player);
+            stateMachine.Start<State1>();
+            stateMachine.Stop();
+            Assert.That(State1.isExited, Is.True);
+        }
+
+        [Test]
+        public void StateMachine_DispatchEvent_CurrentStateとeventKeyに対応する遷移が登録されていない場合はCurrentStateは変わらない()
+        {
+            object player = new();
+            var stateMachine = new StateMachine<object>(player);
+            stateMachine.Start<State1>();
+            stateMachine.DispatchEvent(1);
+            Assert.That(stateMachine.CurrentState, Is.TypeOf<State1>());
+        }
+
     }
 }
