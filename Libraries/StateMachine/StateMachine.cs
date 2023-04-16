@@ -10,7 +10,7 @@ namespace StateMachine
 
         public abstract class State
         {
-            internal StateMachine<TOwner> stateMachine;
+            protected internal StateMachine<TOwner> stateMachine;
             public State() { }
             protected internal virtual void OnEnter() { }
             protected internal virtual void OnUpdate() { }
@@ -49,7 +49,7 @@ namespace StateMachine
         /// StateMachineがすでに開始されているかどうかを返す。
         /// </summary>
         /// <returns>開始されているかどうか</returns>
-        public bool IsActivate => CurrentState is not EmptyState;
+        public bool IsActive => CurrentState is not EmptyState;
 
         /// <summary>
         /// 既に登録されているStateならそれを返す。なければ新しく登録してから返す。
@@ -70,7 +70,7 @@ namespace StateMachine
         /// <exception cref="ArgumentException">引数の型が具象Stateでない場合</exception>
         public void Start<T>() where T : State, new()
         {
-            if (IsActivate)
+            if (IsActive)
             {
                 throw new InvalidOperationException("State is already started.");
             }
@@ -102,7 +102,7 @@ namespace StateMachine
         /// <exception cref="InvalidOperationException">まだ開始されていない場合</exception>
         public void Update()
         {
-            if (!IsActivate)
+            if (!IsActive)
             {
                 throw new InvalidOperationException("State is not started yet.");
             }
@@ -116,7 +116,7 @@ namespace StateMachine
         /// <exception cref="InvalidOperationException">まだ開始されていない場合</exception>
         public void FixedUpdate()
         {
-            if (!IsActivate)
+            if (!IsActive)
             {
                 throw new InvalidOperationException("State is not started yet.");
             }
@@ -129,6 +129,11 @@ namespace StateMachine
         /// </summary>
         public void LateUpdate()
         {
+            if (!IsActive)
+            {
+                throw new InvalidOperationException("State is not started yet.");
+            }
+            CurrentState.OnLateUpdate();
         }
 
         /// <summary>
@@ -136,7 +141,7 @@ namespace StateMachine
         /// </summary>
         public void Stop()
         {
-            if (!IsActivate)
+            if (!IsActive)
             {
                 return;
             }
@@ -167,7 +172,7 @@ namespace StateMachine
         /// <exception cref="InvalidOperationException">まだ開始されていない場合</exception>
         public void DispatchEvent(int eventKey)
         {
-            if (!IsActivate)
+            if (!IsActive)
             {
                 throw new InvalidOperationException("State is not started yet.");
             }

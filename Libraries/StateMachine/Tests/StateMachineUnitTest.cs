@@ -49,13 +49,24 @@ namespace StateMachine
         {
         }
 
+        object player;
+        StateMachine<object> stateMachine;
+        int eventKey = 1;
+
+
+        [SetUp]
+        public void Setup()
+        {
+            player = new();
+            stateMachine = new StateMachine<object>(player);
+
+
+        }
+
 
         [Test]
         public void StateMachine_State1からState2への遷移がeventKeyが1で登録されている場合にState1で開始するとeventKeyが1を発行されたときにState2に遷移する()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
-            var eventKey = 1;
             stateMachine.AddTransition<State1, State2>(eventKey);
             stateMachine.Start<State1>();
             bool didStartState1 = stateMachine.CurrentState is State1;
@@ -67,9 +78,6 @@ namespace StateMachine
         [Test]
         public void StateMachine_State1からState2への遷移がeventKeyが1で登録されている場合にState1で開始するとeventKeyが2を発行されたときにState2に遷移しない()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
-            var eventKey = 1;
             stateMachine.AddTransition<State1, State2>(eventKey);
             stateMachine.Start<State1>();
             bool didStartState1 = stateMachine.CurrentState is State1;
@@ -80,9 +88,6 @@ namespace StateMachine
         [Test]
         public void StateMachine_AddTransition_State1からState2への遷移をeventKeyを1にして登録できる()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
-            var eventKey = 1;
             stateMachine.AddTransition<State1, State2>(eventKey);
             stateMachine.Start<State1>();
             stateMachine.DispatchEvent(eventKey);
@@ -91,9 +96,6 @@ namespace StateMachine
         [Test]
         public void StateMachine_AddTransition_すでにState1からの同じeventKeyでの遷移が登録されている場合はInvalidOperationExceptionを投げる()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
-            var eventKey = 1;
             stateMachine.AddTransition<State1, State2>(eventKey);
             Assert.That(() => { stateMachine.AddTransition<State1, State3>(eventKey); }, Throws.Exception.TypeOf<InvalidOperationException>());
         }
@@ -101,8 +103,6 @@ namespace StateMachine
         [Test]
         public void StateMachine_Start_State1で開始するとState1になる()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
             stateMachine.Start<State1>();
             Assert.That(stateMachine.CurrentState, Is.TypeOf<State1>());
         }
@@ -110,8 +110,6 @@ namespace StateMachine
         [Test]
         public void StateMachine_Start_State1で開始すると内部でState1のOnEnterが呼ばれる()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
             stateMachine.Start<State1>();
             Assert.That(State1.isEntered, Is.True);
         }
@@ -119,8 +117,6 @@ namespace StateMachine
         [Test]
         public void StateMachine_Update_CurrentStateがState1のときは内部でState1のOnUpdateが呼ばれる()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
             stateMachine.Start<State1>();
             stateMachine.Update();
             Assert.That(State1.isUpdated, Is.True);
@@ -129,8 +125,6 @@ namespace StateMachine
         [Test]
         public void StateMachine_FixedUpdate_CurrentStateがState1のときは内部でState1のOnFixedUpdateが呼ばれる()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
             stateMachine.Start<State1>();
             stateMachine.FixedUpdate();
             Assert.That(State1.isFixedUpdated, Is.True);
@@ -139,8 +133,6 @@ namespace StateMachine
         [Test]
         public void StateMachine_LateUpdate_CurrentStateがState1のときは内部でState1のOnLateUpdateが呼ばれる()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
             stateMachine.Start<State1>();
             stateMachine.LateUpdate();
             Assert.That(State1.isLateUpdated, Is.True);
@@ -149,9 +141,6 @@ namespace StateMachine
         [Test]
         public void StateMachine_DispatchEvent_CurrentStateとeventKeyに対応する遷移が登録されている場合は内部でCurrentStateのOnExitが呼ばれる()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
-            int eventKey = 1;
             stateMachine.Start<State1>();
             stateMachine.AddTransition<State1, State2>(eventKey);
             stateMachine.DispatchEvent(eventKey);
@@ -161,9 +150,6 @@ namespace StateMachine
         [Test]
         public void StateMachine_DispatchEvent_CurrentStateとeventKeyに対応する遷移が登録されている場合は内部で次のStateのOnEnterが呼ばれる()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
-            int eventKey = 1;
             stateMachine.Start<State2>();
             stateMachine.AddTransition<State2, State1>(eventKey);
             stateMachine.DispatchEvent(eventKey);
@@ -173,17 +159,13 @@ namespace StateMachine
         [Test]
         public void StateMachine_Stop_CurrentStateを停止する()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
             stateMachine.Start<State1>();
             stateMachine.Stop();
-            Assert.That(stateMachine.IsActivate, Is.False);
+            Assert.That(stateMachine.IsActive, Is.False);
         }
         [Test]
         public void StateMachine_Stop_CurrentStateを停止すると内部でCurrentStateのOnExitが呼ばれる()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
             stateMachine.Start<State1>();
             stateMachine.Stop();
             Assert.That(State1.isExited, Is.True);
@@ -192,10 +174,8 @@ namespace StateMachine
         [Test]
         public void StateMachine_DispatchEvent_CurrentStateとeventKeyに対応する遷移が登録されていない場合はCurrentStateは変わらない()
         {
-            object player = new();
-            var stateMachine = new StateMachine<object>(player);
             stateMachine.Start<State1>();
-            stateMachine.DispatchEvent(1);
+            stateMachine.DispatchEvent(eventKey);
             Assert.That(stateMachine.CurrentState, Is.TypeOf<State1>());
         }
 
