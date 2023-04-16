@@ -59,8 +59,6 @@ namespace StateMachine
         {
             player = new();
             stateMachine = new StateMachine<object>(player);
-
-
         }
 
 

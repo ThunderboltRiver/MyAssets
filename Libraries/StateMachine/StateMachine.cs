@@ -6,8 +6,6 @@ namespace StateMachine
 {
     public class StateMachine<TOwner>
     {
-        private readonly Dictionary<State, Dictionary<int, State>> _transitions = new();
-
         public abstract class State
         {
             protected internal StateMachine<TOwner> stateMachine;
@@ -19,27 +17,45 @@ namespace StateMachine
             protected internal virtual void OnExit() { }
             public static bool operator ==(State a, State b)
             {
-                return a.GetType() == b.GetType();
+                return a.GetType() == b.GetType() && a.stateMachine == b.stateMachine;
             }
             public static bool operator !=(State a, State b)
             {
-                return a.GetType() != b.GetType();
+                return a.GetType() != b.GetType() || a.stateMachine != b.stateMachine;
             }
             public override bool Equals(object obj)
             {
-                return GetType() == obj.GetType();
+                return GetType() == obj.GetType() && stateMachine == (obj as State).stateMachine;
             }
 
             public override int GetHashCode()
             {
-                return GetType().GetHashCode();
+                return GetType().GetHashCode() ^ stateMachine.GetHashCode();
             }
 
         }
+        /// <summary>
+        /// StateMachineの所有者。
+        /// </summary>
+        public TOwner Owner { get; }
+        /// <summary>
+        /// StateMachineの開始前の空の状態を表すState。
+        /// </summary>
         private class EmptyState : State { }
         private readonly EmptyState _emptyState = new();
-        public TOwner Owner { get; }
+
+        /// <summary>
+        /// 現在のState。
+        /// </summary>
         public State CurrentState { get; private set; }
+
+        /// <summary>
+        /// StateMachineの遷移テーブル。キーは現在の状態、値は現在の状態から遷移する状態の辞書。
+        /// </summary>
+        private readonly Dictionary<State, Dictionary<int, State>> _transitions = new();
+        /// <summary>
+        /// StateMachineを初期化する。初期状態は空の状態。
+        /// </summary>
         public StateMachine(TOwner owner)
         {
             Owner = owner;
