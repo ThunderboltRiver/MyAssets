@@ -1,10 +1,12 @@
 using System;
 using NUnit.Framework;
-using State = StateMachine.StateMachine<object>.State;
+using State = StateMachine.FiniteStateMachine<object>.State;
 namespace StateMachine
 {
     public class StateMachineUnitTest
     {
+        /// <summary>
+        /// テスト用のStateクラス
         public class State1 : State
         {
             public static bool isEntered = false;
@@ -45,12 +47,13 @@ namespace StateMachine
         public class State2 : State
         {
         }
+
         public class State3 : State
         {
         }
 
         object player;
-        StateMachine<object> stateMachine;
+        FiniteStateMachine<object> stateMachine;
         int eventKey = 1;
 
 
@@ -58,7 +61,7 @@ namespace StateMachine
         public void Setup()
         {
             player = new();
-            stateMachine = new StateMachine<object>(player);
+            stateMachine = new FiniteStateMachine<object>(player);
         }
 
 
@@ -83,6 +86,14 @@ namespace StateMachine
             bool didEndState2 = stateMachine.CurrentState is State2;
             Assert.That(didStartState1 && didEndState2, Is.False);
         }
+
+        [Test]
+        public void StateMachine_AddTransition_すでにstateMachineが開始されている場合はInvalidOperationExceptionを投げる()
+        {
+            stateMachine.Start<State1>();
+            Assert.That(() => { stateMachine.AddTransition<State1, State2>(eventKey); }, Throws.Exception.TypeOf<InvalidOperationException>());
+        }
+
         [Test]
         public void StateMachine_AddTransition_State1からState2への遷移をeventKeyを1にして登録できる()
         {
@@ -91,6 +102,7 @@ namespace StateMachine
             stateMachine.DispatchEvent(eventKey);
             Assert.That(stateMachine.CurrentState, Is.TypeOf<State2>());
         }
+
         [Test]
         public void StateMachine_AddTransition_すでにState1からの同じeventKeyでの遷移が登録されている場合はInvalidOperationExceptionを投げる()
         {
@@ -139,8 +151,8 @@ namespace StateMachine
         [Test]
         public void StateMachine_DispatchEvent_CurrentStateとeventKeyに対応する遷移が登録されている場合は内部でCurrentStateのOnExitが呼ばれる()
         {
-            stateMachine.Start<State1>();
             stateMachine.AddTransition<State1, State2>(eventKey);
+            stateMachine.Start<State1>();
             stateMachine.DispatchEvent(eventKey);
             Assert.That(State1.isExited, Is.True);
         }
@@ -148,10 +160,18 @@ namespace StateMachine
         [Test]
         public void StateMachine_DispatchEvent_CurrentStateとeventKeyに対応する遷移が登録されている場合は内部で次のStateのOnEnterが呼ばれる()
         {
-            stateMachine.Start<State2>();
             stateMachine.AddTransition<State2, State1>(eventKey);
+            stateMachine.Start<State2>();
             stateMachine.DispatchEvent(eventKey);
             Assert.That(State1.isEntered, Is.True);
+        }
+
+        [Test]
+        public void StateMachine_DispatchEvent_CurrentStateとeventKeyに対応する遷移が登録されていない場合はCurrentStateは変わらない()
+        {
+            stateMachine.Start<State1>();
+            stateMachine.DispatchEvent(eventKey);
+            Assert.That(stateMachine.CurrentState, Is.TypeOf<State1>());
         }
 
         [Test]
@@ -161,6 +181,7 @@ namespace StateMachine
             stateMachine.Stop();
             Assert.That(stateMachine.IsActive, Is.False);
         }
+
         [Test]
         public void StateMachine_Stop_CurrentStateを停止すると内部でCurrentStateのOnExitが呼ばれる()
         {
@@ -169,12 +190,11 @@ namespace StateMachine
             Assert.That(State1.isExited, Is.True);
         }
 
-        [Test]
-        public void StateMachine_DispatchEvent_CurrentStateとeventKeyに対応する遷移が登録されていない場合はCurrentStateは変わらない()
+
+        [TearDown]
+        public void TearDown()
         {
-            stateMachine.Start<State1>();
-            stateMachine.DispatchEvent(eventKey);
-            Assert.That(stateMachine.CurrentState, Is.TypeOf<State1>());
+            stateMachine.Stop();
         }
 
     }

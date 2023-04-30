@@ -4,40 +4,92 @@ using System.Linq;
 
 namespace StateMachine
 {
-    public class StateMachine<TOwner>
+    /// <summary>
+    /// 状態遷移を管理する有限状態機械
+    /// </summary>
+    /// <typeparam name="TOwner">StateMachineの所有者の型</typeparam>
+    public class FiniteStateMachine<TOwner>
     {
+        /// <summary>
+        /// StateMachineの状態を表すクラス。継承して使う。
+        /// </summary>
+        /// <remarks>
+        /// StateMachineの状態を表すクラスはこのクラスを継承して作成する。
+        /// 継承したクラスは、OnEnter()、OnUpdate()、OnLateUpdate()、OnFixedUpdate()、OnExit()のいずれかをオーバーライドして使う。
+        /// これらのメソッドは、Stateが遷移したときに呼び出される。
+        /// </remarks>
         public abstract class State
         {
-            protected internal StateMachine<TOwner> stateMachine;
-            public State() { }
+            /// <summary>
+            /// Stateの所有者のインスタンス。
+            /// </summary>
+            protected internal FiniteStateMachine<TOwner> stateMachine;
+
+            /// <summary>
+            /// コンストラクタ
+            /// </summary>
+            protected internal State() { }
+
+            /// <summary>
+            /// このStateに遷移したときに呼び出される。
+            /// </summary>
             protected internal virtual void OnEnter() { }
+
+            /// <summary>
+            /// stateMachineがUpdateされるときに呼び出される。
+            /// </summary>
             protected internal virtual void OnUpdate() { }
+
+            /// <summary>
+            /// stateMachineがLateUpdateされるときに呼び出される。
+            /// </summary>
             protected internal virtual void OnLateUpdate() { }
+
+            /// <summary>
+            /// stateMachineがFixedUpdateされるときに呼び出される。
+            /// </summary>
             protected internal virtual void OnFixedUpdate() { }
+
+            /// <summary>
+            /// このStateから抜けるときに呼び出される。
+            /// </summary>
             protected internal virtual void OnExit() { }
+
+            /// <summary>
+            /// 別のStateと等価かどうかを返す。TypeとStateMachineの参照が等しいときに等価とみなす。
+            /// </summary>
             public static bool operator ==(State a, State b)
             {
                 return a.GetType() == b.GetType() && a.stateMachine == b.stateMachine;
             }
+
             public static bool operator !=(State a, State b)
             {
                 return a.GetType() != b.GetType() || a.stateMachine != b.stateMachine;
             }
+
+            /// <summary>
+            /// 他のオブジェクトと等価かどうかを返す。TypeとStateMachineの参照が等しいときに等価とみなす。
+            /// </summary>
             public override bool Equals(object obj)
             {
                 return GetType() == obj.GetType() && stateMachine == (obj as State).stateMachine;
             }
 
+            /// <summary>
+            /// HashCodeを返す。TypeとStateMachineの参照のハッシュコードをXORしたものを返す。
+            /// </summary>
             public override int GetHashCode()
             {
                 return GetType().GetHashCode() ^ stateMachine.GetHashCode();
             }
-
         }
+
         /// <summary>
         /// StateMachineの所有者。
         /// </summary>
         public TOwner Owner { get; }
+
         /// <summary>
         /// StateMachineの開始前の空の状態を表すState。
         /// </summary>
@@ -53,14 +105,16 @@ namespace StateMachine
         /// StateMachineの遷移テーブル。キーは現在の状態、値は現在の状態から遷移する状態の辞書。
         /// </summary>
         private readonly Dictionary<State, Dictionary<int, State>> _transitions = new();
+
         /// <summary>
         /// StateMachineを初期化する。初期状態は空の状態。
         /// </summary>
-        public StateMachine(TOwner owner)
+        public FiniteStateMachine(TOwner owner)
         {
             Owner = owner;
             CurrentState = _emptyState;
         }
+
         /// <summary>
         /// StateMachineがすでに開始されているかどうかを返す。
         /// </summary>
@@ -79,6 +133,28 @@ namespace StateMachine
         }
 
         /// <summary>
+        /// 現在の状態を強制的に変更する.内部で変更前のStateのOnExit()と変更後のStateのOnEnter()を呼び出す。
+        /// </summary>
+        /// <typeparam name="T">変更後の具象Stateの型</typeparam>
+        private void ChangeState<T>() where T : State, new()
+        {
+            CurrentState.OnExit();
+            CurrentState = _emptyState is T ? _emptyState : RegisterOrGetState<T>();
+            CurrentState.OnEnter();
+        }
+
+        ///<summary>
+        /// 現在の状態を強制的に変更する
+        /// </summary>
+        /// <param name="state">変更後の具象Stateのインスタンス</param>
+        private void ChangeState(State state)
+        {
+            CurrentState.OnExit();
+            CurrentState = state;
+            CurrentState.OnEnter();
+        }
+
+        /// <summary>
         /// StateMachineを開始する。すでに開始されている場合は例外を投げる。
         /// </summary>
         /// <typeparam name="T">開始する具象Stateの型</typeparam>
@@ -90,25 +166,7 @@ namespace StateMachine
             {
                 throw new InvalidOperationException("State is already started.");
             }
-            CurrentState = RegisterOrGetState<T>();
-            CurrentState.OnEnter();
-        }
-
-        /// <summary>
-        /// FromStateからToStateへの遷移がeventKeyで登録されているかどうかを返す。
-        /// </summary>
-        /// <typeparam name="TFrom">FromStateの具象Stateの型</typeparam>
-        /// <typeparam name="TTo">ToStateの具象Stateの型</typeparam>
-        /// <param name="eventKey">遷移を登録するためのキー</param>
-        /// <returns>登録されているかどうか</returns>
-        public bool HasTransition<TFrom, TTo>(int eventKey) where TFrom : State, new() where TTo : State, new()
-        {
-            if (_transitions.Keys.Count(state => state is TFrom) == 0)
-            {
-                return false;
-            }
-            var from = _transitions.Keys.Where(state => state is TFrom).First();
-            return _transitions[from][eventKey] is TTo;
+            ChangeState<T>();
         }
 
         /// <summary>
@@ -143,6 +201,7 @@ namespace StateMachine
         /// StateMachineを更新した後に呼び出す。 まだ開始されていない場合は例外を投げる。
         /// MonoBehaviourのLateUpdate()などで呼び出す。
         /// </summary>
+        /// <exception cref="InvalidOperationException">まだ開始されていない場合</exception>
         public void LateUpdate()
         {
             if (!IsActive)
@@ -161,8 +220,7 @@ namespace StateMachine
             {
                 return;
             }
-            CurrentState.OnExit();
-            CurrentState = _emptyState;
+            ChangeState<EmptyState>();
         }
 
         /// <summary>
@@ -173,6 +231,10 @@ namespace StateMachine
         /// <param name="eventKey">遷移を登録するためのキー</param>
         public void AddTransition<TFrom, TTo>(int eventKey) where TFrom : State, new() where TTo : State, new()
         {
+            if (IsActive)
+            {
+                throw new InvalidOperationException("State is already started. You can't add transition after starting.");
+            }
             var from = RegisterOrGetState<TFrom>();
             var to = RegisterOrGetState<TTo>();
             if (!_transitions[from].TryAdd(eventKey, to))
@@ -182,9 +244,26 @@ namespace StateMachine
         }
 
         /// <summary>
+        /// FromStateからToStateへの遷移がeventKeyで登録されているかどうかを返す。
+        /// </summary>
+        /// <typeparam name="TFrom">FromStateの具象Stateの型</typeparam>
+        /// <typeparam name="TTo">ToStateの具象Stateの型</typeparam>
+        /// <param name="eventKey">遷移を登録するためのキー</param>
+        /// <returns>登録されているかどうか</returns>
+        public bool HasTransition<TFrom, TTo>(int eventKey) where TFrom : State, new() where TTo : State, new()
+        {
+            if (_transitions.Keys.Count(state => state is TFrom) == 0)
+            {
+                return false;
+            }
+            var from = _transitions.Keys.Where(state => state is TFrom).First();
+            return _transitions[from][eventKey] is TTo;
+        }
+
+        /// <summary>
         /// stateMachineにeventKeyを送信する。CurrentStateに対する遷移が登録されている場合は遷移の処理を行う。
         /// </summary>
-        /// <param name="eventKey">遷移を登録するためのキー</param>
+        /// <param name="eventKey">遷移を発生させるキー</param>
         /// <exception cref="InvalidOperationException">まだ開始されていない場合</exception>
         public void DispatchEvent(int eventKey)
         {
@@ -192,13 +271,10 @@ namespace StateMachine
             {
                 throw new InvalidOperationException("State is not started yet.");
             }
-            if (!_transitions[CurrentState].TryGetValue(eventKey, out var nextState))
+            if (_transitions[CurrentState].TryGetValue(eventKey, out var nextState))
             {
-                return;
+                ChangeState(nextState);
             }
-            CurrentState.OnExit();
-            CurrentState = nextState;
-            CurrentState.OnEnter();
         }
 
     }
