@@ -133,6 +133,18 @@ namespace StateMachine
         }
 
         /// <summary>
+        /// Stateのインスタンスを登録する。登録に成功したらtrueを返す。すでに登録されている場合はfalseを返す。
+        /// </summary>
+        /// <param name="state"></param>
+        /// <typeparam name="T"></typeparam>
+        public bool RegisterState<T>(T state) where T : State
+        {
+            RegisterValidation(state);
+            state.stateMachine = this;
+            return _transitions.TryAdd(state, new Dictionary<int, State>());
+        }
+
+        /// <summary>
         /// 現在の状態を強制的に変更する.内部で変更前のStateのOnExit()と変更後のStateのOnEnter()を呼び出す。
         /// </summary>
         /// <typeparam name="T">変更後の具象Stateの型</typeparam>
@@ -243,6 +255,27 @@ namespace StateMachine
             }
         }
 
+        private void RegisterValidation(State state)
+        {
+            if (state.stateMachine != null && state.stateMachine != this)
+            {
+                throw new InvalidOperationException("State is already registered in other StateMachine.");
+            }
+        }
+
+        public void AddTransition(State from, State to, int eventKey)
+        {
+            if (IsActive)
+            {
+                throw new InvalidOperationException("State is already started. You can't add transition after starting.");
+            }
+            RegisterState(from);
+            RegisterState(to);
+            if (!_transitions[from].TryAdd(eventKey, to))
+            {
+                throw new InvalidOperationException("Transition is already registered.");
+            }
+        }
         /// <summary>
         /// FromStateからToStateへの遷移がeventKeyで登録されているかどうかを返す。
         /// </summary>
